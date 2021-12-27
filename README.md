@@ -1,2 +1,2 @@
-# trading-momentum-transformer
-Trading with the Momentum Transformer
+# Trading with the Momentum Transformer
+
