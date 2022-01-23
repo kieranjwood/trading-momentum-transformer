@@ -127,3 +127,10 @@ dmypy.json
 
 # Pyre type checker
 .pyre/
+
+results/
+.vscode/
+nohup*
+data/*
+!data/pull_data.py
+!data/download_quandl_data.py
