@@ -15,7 +15,7 @@ TRAIN_VALID_RATIO = 0.90
 TIME_FEATURES = False
 FORCE_OUTPUT_SHARPE_LENGTH = None
 EVALUATE_DIVERSIFIED_VAL_SHARPE = True
-NAME = "experiment_quandl_100assets_v4"
+NAME = "experiment_quandl_100assets"
 
 def main(
     experiment: str,
