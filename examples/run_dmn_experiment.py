@@ -181,7 +181,7 @@ if __name__ == "__main__":
             metavar="r",
             type=int,
             nargs="?",
-            default=5,
+            default=1,
             help="Number of experiment repeats.",
         )
 

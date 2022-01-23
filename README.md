@@ -42,4 +42,7 @@ Please cite our papers with:
 }
 ```
 
-The Momentum Transformer uses a number of components from the [Temporal Fusion Transformer (TFT)]. The code for the TFT vcan be found [here](https://github.com/google-research/google-research/tree/master/tft).
+The Momentum Transformer uses a number of components from the Temporal Fusion Transformer (TFT). The code for the TFT can be found [here](https://github.com/google-research/google-research/tree/master/tft).
+
+## Sample results
+Will be available soon. 
