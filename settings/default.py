@@ -11,97 +11,13 @@ CPD_QUANDL_OUTPUT_FOLDER = lambda lbw: os.path.join(
 
 CPD_QUANDL_OUTPUT_FOLDER_DEFAULT = CPD_QUANDL_OUTPUT_FOLDER(CPD_DEFAULT_LBW)
 
-CPD_OUTPUT_FOLDER_DEFAULT = os.path.join(
-    "data", f"commodities_cpd_{(CPD_DEFAULT_LBW if CPD_DEFAULT_LBW else 'none')}lbw"
-)
-
 FEATURES_QUANDL_FILE_PATH = lambda lbw: os.path.join(
     "data", f"quandl_cpd_{(lbw if lbw else 'none')}lbw.csv"
 )
 
 FEATURES_QUANDL_FILE_PATH_DEFAULT = FEATURES_QUANDL_FILE_PATH(CPD_DEFAULT_LBW)
 
-FEATURES_FILE_PATH_DEFAULT = os.path.join(
-    "data", f"features_cpd_{(CPD_DEFAULT_LBW if CPD_DEFAULT_LBW else 'none')}lbw.csv"
-)
-
 QUANDL_TICKERS = [
-# 'ICE_SB',
-#  'CME_SF',
-#  'CME_SI',
-#  'CME_SM',
-#  'CME_SP',
-#  'ICE_OJ',
-#  'CME_TY',
-#  'CME_US',
-#  'CME_W',
-#  'CME_CL',
-#  'CME_CD',
-#  'CME_C',
-#  'ICE_KC',
-#  'CME_GC',
-#  'CME_AD',
-#  'ICE_DX',
-#  'ICE_CT',
-#  'CME_BP',
-#  'CME_S',
-#  'ICE_CC',
-#  'CME_BO',
-#  'CME_PL',
-#  'CME_PA',
-#  'CME_O',
-#  'CME_HG',
-#  'CME_FC',
-#  'CME_HO',
-#  'CME_LN',
-#  'CME_LC',
-#  'CME_LB',
-#  'CME_RR',
-#  'CME_KW',
-#  'CME_JY',
-#  'CME_FV',
-#  'CME_NG',
-#  'ICE_G',
-#  'CME_NK',
-#  'CME_MD',
-#  'ICE_B',
-#  'LIFFE_C',
-#  'LIFFE_RC',
-#  'CME_MP',
-#  'ICE_RS',
-#  'ICE_M',
-#  'CME_ES',
-#  'CME_B3',
-#  'CME_EC',
-#  'EUREX_FGBM',
-#  'CME_NQ',
-#  'CME_BR',
-#  'CME_NE',
-#  'ICE_SY',
-#  'ICE_ZR',
-#  'ICE_SS',
-#  'ODE_AB',
-#  'ICE_AR',
-#  'ICE_MP',
-#  'ICE_BPB',
-#  'ICE_P',
-#  'CBOE_VX',
-#  'CME_RB',
-#  'ICE_T',
-#  'ICE_N',
-#  'ICE_O',
-#  'ICE_ZJ',
-#  'LIFFE_T',
-#  'CME_RF',
-#  'CME_TU',
-#  'CME_YM',
-#  'LIFFE_R',
-#  'CME_RU',
-#  'ICE_NT',
-#  'ICE_C',
-#  'ICE_NCF',
-#  'LIFFE_FCE']
-# [
     "ICE_SB",
     "CME_SF",
     "CME_SI",

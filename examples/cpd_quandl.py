@@ -32,7 +32,7 @@ if __name__ == "__main__":
             metavar="t",
             type=str,
             nargs="?",
-            default="^FTSE",
+            default="ICE_SB",
             # choices=[],
             help="Ticker type",
         )
