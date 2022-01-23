@@ -1,4 +1,4 @@
-"Many components in this file are adapted from https://github.com/google-research/google-research/tree/master/tft"
+"""Many components in this file are adapted from https://github.com/google-research/google-research/tree/master/tft"""
 import tensorflow as tf
 from tensorflow import keras
 import gc
