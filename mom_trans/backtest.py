@@ -317,7 +317,7 @@ def aggregate_and_save_all_windows(
                 experiment_name,
                 train_intervals,
                 volatility_rescaling=True,
-                only_5_year_windows=True,
+                only_standard_windows=True,
                 volatilites_known=average_results["annual_volatility" + suffix],
                 filter_identifiers=(
                     None

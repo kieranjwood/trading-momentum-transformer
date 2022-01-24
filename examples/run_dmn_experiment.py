@@ -17,6 +17,7 @@ FORCE_OUTPUT_SHARPE_LENGTH = None
 EVALUATE_DIVERSIFIED_VAL_SHARPE = True
 NAME = "experiment_quandl_100assets"
 
+
 def main(
     experiment: str,
     train_start: int,
@@ -67,7 +68,7 @@ def main(
         + ("_TEST" if TEST_MODE else "")
         + ("" if TRAIN_VALID_RATIO == 0.90 else f"_split{int(TRAIN_VALID_RATIO * 100)}")
     )
-    
+
     cp_string = (
         "none"
         if not changepoint_lbws
@@ -82,7 +83,8 @@ def main(
         PROJECT_NAME = _project_name + str(v)
 
         intervals = [
-            (train_start, y, y + test_window_size) for y in range(test_start, test_end)
+            (train_start, y, y + test_window_size)
+            for y in range(test_start, test_end - 1)
         ]
 
         params = MODLE_PARAMS.copy()
@@ -140,7 +142,7 @@ if __name__ == "__main__":
                 "TFT-CPD-126-21",
                 "TFT-SHORT",
                 "TFT-SHORT-CPD-21",
-                "TFT-SHORT-CPD-63"
+                "TFT-SHORT-CPD-63",
             ],
             help="Input folder for CPD outputs.",
         )
