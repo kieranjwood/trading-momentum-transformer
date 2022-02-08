@@ -28,17 +28,17 @@ Please cite our papers with:
   year={2021}
 }
 
-@article{wood2021slow,
-   title={Slow Momentum with Fast Reversion: A Trading Strategy Using Deep Learning and Changepoint Detection},
-   ISSN={2640-3943},
-   url={http://dx.doi.org/10.3905/jfds.2021.1.081},
-   DOI={10.3905/jfds.2021.1.081},
-   journal={The Journal of Financial Data Science},
-   publisher={Pageant Media US},
-   author={Wood, Kieran and Roberts, Stephen and Zohren, Stefan},
-   year={2021},
-   month={Dec},
-   pages={jfds.2021.1.081}
+@article {Woodjfds.2021.1.081,
+	author = {Wood, Kieran and Roberts, Stephen and Zohren, Stefan},
+	title = {Slow Momentum with Fast Reversion: A Trading Strategy Using Deep Learning and Changepoint Detection},
+	elocation-id = {jfds.2021.1.081},
+	year = {2021},
+	doi = {10.3905/jfds.2021.1.081},
+	publisher = {Institutional Investor Journals Umbrella},
+	issn = {2640-3943},
+	URL = {https://jfds.pm-research.com/content/early/2021/12/09/jfds.2021.1.081},
+	eprint = {https://jfds.pm-research.com/content/early/2021/12/09/jfds.2021.1.081.full.pdf},
+	journal = {The Journal of Financial Data Science}
 }
 ```
 
