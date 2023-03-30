@@ -353,6 +353,7 @@ def run_module(
 
     time_series_data["date"] = time_series_data.index
     time_series_data = time_series_data.reset_index(drop=True)
+
     for window_end in range(lookback_window_length + 1, len(time_series_data)):
         ts_data_window = time_series_data.iloc[
             window_end - (lookback_window_length + 1) : window_end
@@ -380,6 +381,9 @@ def run_module(
         except:
             # write as NA when fails and will deal with this later
             cp_score, cp_loc, cp_loc_normalised = "NA", "NA", "NA"
+
+        
+        print("====ts_data_window====={},{},{}\n{}".format(cp_score, cp_loc, cp_loc_normalised, ts_data_window))
 
         # #write the reults to the csv
         with open(output_csv_file_path, "a") as f:
