@@ -84,8 +84,11 @@ def main(
 
         intervals = [
             (train_start, y, y + test_window_size)
-            for y in range(test_start, test_end - 1)
+            for y in range(test_start, test_end) # TODO modified test_end - 1
         ]
+
+        print("==intervals:{}".format(intervals))
+
 
         params = MODLE_PARAMS.copy()
         params["total_time_steps"] = lstm_time_steps
@@ -159,7 +162,7 @@ if __name__ == "__main__":
             metavar="t",
             type=int,
             nargs="?",
-            default=2016,
+            default=1992,
             help="Training end year and test start year.",
         )
         parser.add_argument(
@@ -167,7 +170,7 @@ if __name__ == "__main__":
             metavar="e",
             type=int,
             nargs="?",
-            default=2022,
+            default=1993,
             help="Testing end year.",
         )
         parser.add_argument(

@@ -93,6 +93,13 @@ def _results_from_all_windows(
         experiment_name (str): experiment name
         train_intervals (List[Tuple[int, int, int]]): list of training intervals
     """
+
+    print("===_results_from_all_windows===")
+    print(train_intervals)
+
+    for interval in train_intervals:
+        print(os.path.join(_get_directory_name(experiment_name, interval), "results.json"))
+
     return pd.concat(
         [
             pd.read_json(
