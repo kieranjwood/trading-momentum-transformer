@@ -16,7 +16,7 @@ def main(lookback_window_length: int):
         os.mkdir(CPD_QUANDL_OUTPUT_FOLDER(lookback_window_length))
 
     all_processes = [
-        f'python -m examples.cpd_quandl "{ticker}" "{os.path.join(CPD_QUANDL_OUTPUT_FOLDER(lookback_window_length), ticker + ".csv")}" "1990-01-01" "1992-12-31" "{lookback_window_length}"'
+        f'python -m examples.cpd_quandl "{ticker}" "{os.path.join(CPD_QUANDL_OUTPUT_FOLDER(lookback_window_length), ticker + ".csv")}" "2005-01-01" "2014-12-31" "{lookback_window_length}"'
         for ticker in QUANDL_TICKERS
     ]
     process_pool = multiprocessing.Pool(processes=N_WORKERS)

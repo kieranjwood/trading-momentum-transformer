@@ -50,7 +50,7 @@ if __name__ == "__main__":
             metavar="s",
             type=str,
             nargs="?",
-            default="1990-01-01",
+            default="2005-01-01",
             help="Start date in format yyyy-mm-dd",
         )
         parser.add_argument(
@@ -58,7 +58,7 @@ if __name__ == "__main__":
             metavar="e",
             type=str,
             nargs="?",
-            default="2021-12-31",
+            default="2014-12-31",
             help="End date in format yyyy-mm-dd",
         )
         parser.add_argument(
