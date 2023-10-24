@@ -48,3 +48,6 @@ The Momentum Transformer uses a number of components from the Temporal Fusion Tr
 
 ## Sample results
 Will be made available soon. 
+
+## Subsequent work
+We also have a follow-up paper: [Few-Shot Learning Patterns in Financial Time-Series for Trend-Following Strategies](https://arxiv.org/abs/2310.10500)
