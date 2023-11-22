@@ -17,7 +17,7 @@ VOL_LOOKBACK = 60  # for ex-ante volatility
 VOL_TARGET = 0.15  # 15% volatility target
 
 
-def calc_performance_metrics(data: pd.DataFrame, metric_suffix="", num_identifiers = None) -> dict:
+def calc_performance_metrics(data: pd.DataFrame, metric_suffix="", num_identifiers=None) -> dict:
     """Performance metrics for evaluating strategy
 
     Args:
@@ -28,7 +28,7 @@ def calc_performance_metrics(data: pd.DataFrame, metric_suffix="", num_identifie
     """
     if not num_identifiers:
         num_identifiers = len(data.dropna()["identifier"].unique())
-    srs = data.dropna().groupby(level=0)["captured_returns"].sum()/num_identifiers
+    srs = data.dropna().groupby(level=0)["captured_returns"].sum() / num_identifiers
     return {
         f"annual_return{metric_suffix}": annual_return(srs),
         f"annual_volatility{metric_suffix}": annual_volatility(srs),
@@ -39,8 +39,9 @@ def calc_performance_metrics(data: pd.DataFrame, metric_suffix="", num_identifie
         f"calmar_ratio{metric_suffix}": calmar_ratio(srs),
         f"perc_pos_return{metric_suffix}": len(srs[srs > 0.0]) / len(srs),
         f"profit_loss_ratio{metric_suffix}": np.mean(srs[srs > 0.0])
-        / np.mean(np.abs(srs[srs < 0.0])),
+                                             / np.mean(np.abs(srs[srs < 0.0])),
     }
+
 
 def calc_performance_metrics_subset(srs: pd.Series, metric_suffix="") -> dict:
     """Performance metrics for evaluating strategy
@@ -58,7 +59,8 @@ def calc_performance_metrics_subset(srs: pd.Series, metric_suffix="") -> dict:
         f"max_drawdown{metric_suffix}": -max_drawdown(srs),
     }
 
-def calc_net_returns(data: pd.DataFrame, list_basis_points: List[float], identifiers = None):
+
+def calc_net_returns(data: pd.DataFrame, list_basis_points: List[float], identifiers=None):
     if not identifiers:
         identifiers = data["identifier"].unique().tolist()
     cost = np.atleast_2d(list_basis_points) * 1e-4
@@ -66,13 +68,15 @@ def calc_net_returns(data: pd.DataFrame, list_basis_points: List[float], identif
     dfs = []
     for i in identifiers:
         data_slice = data[data["identifier"] == i].reset_index(drop=True)
-        annualised_vol = data_slice["daily_vol"]*np.sqrt(252)
-        scaled_position = VOL_TARGET*data_slice["position"]/annualised_vol
-        transaction_costs =  scaled_position.diff().abs().fillna(0.0).to_frame().to_numpy()* cost # TODO should probably fill first with initial cost
+        annualised_vol = data_slice["daily_vol"] * np.sqrt(252)
+        scaled_position = VOL_TARGET * data_slice["position"] / annualised_vol
+        transaction_costs = scaled_position.diff().abs().fillna(
+            0.0).to_frame().to_numpy() * cost  # TODO should probably fill first with initial cost
         net_captured_returns = data_slice[["captured_returns"]].to_numpy() - transaction_costs
-        columns = list(map(lambda c: "captured_returns_" + str(c).replace(".", "_") +"_bps", list_basis_points))
+        columns = list(map(lambda c: "captured_returns_" + str(c).replace(".", "_") + "_bps", list_basis_points))
         dfs.append(pd.concat([data_slice, pd.DataFrame(net_captured_returns, columns=columns)], axis=1))
     return pd.concat(dfs).reset_index(drop=True)
+
 
 def calc_sharpe_by_year(data: pd.DataFrame, suffix: str = None) -> dict:
     """Sharpe ratio for each year in dataframe
@@ -137,7 +141,7 @@ def calc_vol_scaled_returns(daily_returns, daily_vol=pd.Series(None)):
 
 
 def calc_trend_intermediate_strategy(
-    srs: pd.Series, w: float, volatility_scaling=True
+        srs: pd.Series, w: float, volatility_scaling=True
 ) -> pd.Series:
     """Calculate intermediate strategy
 
@@ -160,8 +164,8 @@ def calc_trend_intermediate_strategy(
     )
 
     return (
-        w * np.sign(monthly_returns) * next_day_returns
-        + (1 - w) * np.sign(annual_returns) * next_day_returns
+            w * np.sign(monthly_returns) * next_day_returns
+            + (1 - w) * np.sign(annual_returns) * next_day_returns
     )
 
 
@@ -195,8 +199,8 @@ class MACDStrategy:
             return np.log(0.5) / np.log(1 - 1 / timescale)
 
         macd = (
-            srs.ewm(halflife=_calc_halflife(short_timescale)).mean()
-            - srs.ewm(halflife=_calc_halflife(long_timescale)).mean()
+                srs.ewm(halflife=_calc_halflife(short_timescale)).mean()
+                - srs.ewm(halflife=_calc_halflife(long_timescale)).mean()
         )
         q = macd / srs.rolling(63).std().fillna(method="bfill")
         return q / q.rolling(252).std().fillna(method="bfill")

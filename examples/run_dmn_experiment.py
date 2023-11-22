@@ -20,12 +20,12 @@ NAME = "experiment_quandl_100assets"
 
 
 def main(
-    experiment: str,
-    train_start: int,
-    test_start: int,
-    test_end: int,
-    test_window_size: int,
-    num_repeats: int,
+        experiment: str,
+        train_start: int,
+        test_start: int,
+        test_end: int,
+        test_window_size: int,
+        num_repeats: int,
 ):
     if experiment == "LSTM":
         architecture = "LSTM"
@@ -65,9 +65,9 @@ def main(
     versions = range(1, 1 + num_repeats) if not TEST_MODE else [1]
 
     experiment_prefix = (
-        NAME
-        + ("_TEST" if TEST_MODE else "")
-        + ("" if TRAIN_VALID_RATIO == 0.90 else f"_split{int(TRAIN_VALID_RATIO * 100)}")
+            NAME
+            + ("_TEST" if TEST_MODE else "")
+            + ("" if TRAIN_VALID_RATIO == 0.90 else f"_split{int(TRAIN_VALID_RATIO * 100)}")
     )
 
     cp_string = (
@@ -124,7 +124,6 @@ def main(
 
 
 if __name__ == "__main__":
-
     def get_args():
         """Returns settings from command line."""
 
@@ -198,5 +197,6 @@ if __name__ == "__main__":
             args.test_window_size,
             args.num_repeats,
         )
+
 
     main(*get_args())

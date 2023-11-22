@@ -17,12 +17,12 @@ MAX_ITERATIONS = 200
 
 class ChangePointsWithBounds(ChangePoints):
     def __init__(
-        self,
-        kernels: Tuple[Kernel, Kernel],
-        location: float,
-        interval: Tuple[float, float],
-        steepness: float = 1.0,
-        name: Optional[str] = None,
+            self,
+            kernels: Tuple[Kernel, Kernel],
+            location: float,
+            interval: Tuple[float, float],
+            steepness: float = 1.0,
+            name: Optional[str] = None,
     ):
         """Overwrite the Chnagepoints class to
         1) only take a single location
@@ -66,10 +66,10 @@ class ChangePointsWithBounds(ChangePoints):
 
 
 def fit_matern_kernel(
-    time_series_data: pd.DataFrame,
-    variance: float = 1.0,
-    lengthscale: float = 1.0,
-    likelihood_variance: float = 1.0,
+        time_series_data: pd.DataFrame,
+        variance: float = 1.0,
+        lengthscale: float = 1.0,
+        likelihood_variance: float = 1.0,
 ) -> Tuple[float, Dict[str, float]]:
     """Fit the Matern 3/2 kernel on a time-series
 
@@ -103,14 +103,14 @@ def fit_matern_kernel(
 
 
 def fit_changepoint_kernel(
-    time_series_data: pd.DataFrame,
-    k1_variance: float = 1.0,
-    k1_lengthscale: float = 1.0,
-    k2_variance: float = 1.0,
-    k2_lengthscale: float = 1.0,
-    kC_likelihood_variance=1.0,
-    kC_changepoint_location=None,
-    kC_steepness=1.0,
+        time_series_data: pd.DataFrame,
+        k1_variance: float = 1.0,
+        k1_lengthscale: float = 1.0,
+        k2_variance: float = 1.0,
+        k2_lengthscale: float = 1.0,
+        kC_likelihood_variance=1.0,
+        kC_changepoint_location=None,
+        kC_steepness=1.0,
 ) -> Tuple[float, float, Dict[str, float]]:
     """Fit the Changepoint kernel on a time-series
 
@@ -129,8 +129,8 @@ def fit_changepoint_kernel(
     """
     if not kC_changepoint_location:
         kC_changepoint_location = (
-            time_series_data["X"].iloc[0] + time_series_data["X"].iloc[-1]
-        ) / 2.0
+                                          time_series_data["X"].iloc[0] + time_series_data["X"].iloc[-1]
+                                  ) / 2.0
 
     m = gpflow.models.GPR(
         data=(
@@ -166,7 +166,7 @@ def fit_changepoint_kernel(
 
 
 def changepoint_severity(
-    kC_nlml: Union[float, List[float]], kM_nlml: Union[float, List[float]]
+        kC_nlml: Union[float, List[float]], kM_nlml: Union[float, List[float]]
 ) -> float:
     """Changepoint score as detailed in https://arxiv.org/pdf/2105.13727.pdf
 
@@ -182,18 +182,18 @@ def changepoint_severity(
 
 
 def changepoint_loc_and_score(
-    time_series_data_window: pd.DataFrame,
-    kM_variance: float = 1.0,
-    kM_lengthscale: float = 1.0,
-    kM_likelihood_variance: float = 1.0,
-    k1_variance: float = None,
-    k1_lengthscale: float = None,
-    k2_variance: float = None,
-    k2_lengthscale: float = None,
-    kC_likelihood_variance=1.0, #TODO note this seems to work better by resetting this
-    # kC_likelihood_variance=None,
-    kC_changepoint_location=None,
-    kC_steepness=1.0,
+        time_series_data_window: pd.DataFrame,
+        kM_variance: float = 1.0,
+        kM_lengthscale: float = 1.0,
+        kM_likelihood_variance: float = 1.0,
+        k1_variance: float = None,
+        k1_lengthscale: float = None,
+        k2_variance: float = None,
+        k2_lengthscale: float = None,
+        kC_likelihood_variance=1.0,  # TODO note this seems to work better by resetting this
+        # kC_likelihood_variance=None,
+        kC_changepoint_location=None,
+        kC_steepness=1.0,
 ) -> Tuple[float, float, float, Dict[str, float], Dict[str, float]]:
     """For a single time-series window, calcualte changepoint score and location as detailed in https://arxiv.org/pdf/2105.13727.pdf
 
@@ -237,15 +237,15 @@ def changepoint_loc_and_score(
         ) = fit_matern_kernel(time_series_data)
 
     is_cp_location_default = (
-        (not kC_changepoint_location)
-        or kC_changepoint_location < time_series_data["X"].iloc[0]
-        or kC_changepoint_location > time_series_data["X"].iloc[-1]
+            (not kC_changepoint_location)
+            or kC_changepoint_location < time_series_data["X"].iloc[0]
+            or kC_changepoint_location > time_series_data["X"].iloc[-1]
     )
     if is_cp_location_default:
         # default to midpoint
         kC_changepoint_location = (
-            time_series_data["X"].iloc[-1] + time_series_data["X"].iloc[0]
-        ) / 2.0
+                                          time_series_data["X"].iloc[-1] + time_series_data["X"].iloc[0]
+                                  ) / 2.0
 
     if not k1_variance:
         k1_variance = kM_params["kM_variance"]
@@ -277,13 +277,13 @@ def changepoint_loc_and_score(
         # do not want to optimise again if the hyperparameters
         # were already initialised as the defaults
         if (
-            k1_variance
-            == k1_lengthscale
-            == k2_variance
-            == k2_lengthscale
-            == kC_likelihood_variance
-            == kC_steepness
-            == 1.0
+                k1_variance
+                == k1_lengthscale
+                == k2_variance
+                == k2_lengthscale
+                == kC_likelihood_variance
+                == kC_steepness
+                == 1.0
         ) and is_cp_location_default:
             raise BaseException(
                 "Retry with default hyperparameters - already using default parameters."
@@ -296,19 +296,19 @@ def changepoint_loc_and_score(
 
     cp_score = changepoint_severity(kC_nlml, kM_nlml)
     cp_loc_normalised = (time_series_data["X"].iloc[-1] - changepoint_location) / (
-        time_series_data["X"].iloc[-1] - time_series_data["X"].iloc[0]
+            time_series_data["X"].iloc[-1] - time_series_data["X"].iloc[0]
     )
 
     return cp_score, changepoint_location, cp_loc_normalised, kM_params, kC_params
 
 
 def run_module(
-    time_series_data: pd.DataFrame,
-    lookback_window_length: int,
-    output_csv_file_path: str,
-    start_date: dt.datetime = None,
-    end_date: dt.datetime = None,
-    use_kM_hyp_to_initialise_kC=True,
+        time_series_data: pd.DataFrame,
+        lookback_window_length: int,
+        output_csv_file_path: str,
+        start_date: dt.datetime = None,
+        end_date: dt.datetime = None,
+        use_kM_hyp_to_initialise_kC=True,
 ):
     """Run the changepoint detection module as described in https://arxiv.org/pdf/2105.13727.pdf
     for all times (in date range if specified). Outputs results to a csv.
@@ -323,8 +323,8 @@ def run_module(
     """
     if start_date and end_date:
         first_window = time_series_data.loc[:start_date].iloc[
-            -(lookback_window_length + 1) :, :
-        ]
+                       -(lookback_window_length + 1):, :
+                       ]
         remaining_data = time_series_data.loc[start_date:end_date, :]
         if remaining_data.index[0] == start_date:
             remaining_data = remaining_data.iloc[1:, :]
@@ -337,8 +337,8 @@ def run_module(
         time_series_data = time_series_data.iloc[:end_date, :].copy()
     elif not end_date:
         first_window = time_series_data.loc[:start_date].iloc[
-            -(lookback_window_length + 1) :, :
-        ]
+                       -(lookback_window_length + 1):, :
+                       ]
         remaining_data = time_series_data.loc[start_date:, :]
         if remaining_data.index[0] == start_date:
             remaining_data = remaining_data.iloc[1:, :]
@@ -355,8 +355,8 @@ def run_module(
     time_series_data = time_series_data.reset_index(drop=True)
     for window_end in range(lookback_window_length + 1, len(time_series_data)):
         ts_data_window = time_series_data.iloc[
-            window_end - (lookback_window_length + 1) : window_end
-        ][["date", "daily_returns"]].copy()
+                         window_end - (lookback_window_length + 1): window_end
+                         ][["date", "daily_returns"]].copy()
         ts_data_window["X"] = ts_data_window.index.astype(float)
         ts_data_window = ts_data_window.rename(columns={"daily_returns": "Y"})
         time_index = window_end - 1

@@ -1,12 +1,13 @@
 """Model Inputs"""
-# import mom_trans.utils as utils
-import numpy as np
-import sklearn.preprocessing
-import pandas as pd
 import datetime as dt
 import enum
 
+# import mom_trans.utils as utils
+import numpy as np
+import pandas as pd
+import sklearn.preprocessing
 from sklearn.preprocessing import MinMaxScaler
+
 
 # Type defintions
 class DataTypes(enum.IntEnum):
@@ -68,23 +69,23 @@ class ModelFeatures:
     """
 
     def __init__(
-        self,
-        df,
-        total_time_steps,
-        start_boundary=1990,
-        test_boundary=2020,
-        test_end=2021,
-        changepoint_lbws=None,
-        train_valid_sliding=False,
-        # add_buffer_years_to_test=1,  # TODO FIX THIS!!!!
-        transform_real_inputs=False,  # TODO remove this
-        train_valid_ratio=0.9,
-        split_tickers_individually=True,
-        add_ticker_as_static=False,
-        time_features=False,
-        lags=None,
-        asset_class_dictionary=None,
-        static_ticker_type_feature = False,
+            self,
+            df,
+            total_time_steps,
+            start_boundary=1990,
+            test_boundary=2020,
+            test_end=2021,
+            changepoint_lbws=None,
+            train_valid_sliding=False,
+            # add_buffer_years_to_test=1,  # TODO FIX THIS!!!!
+            transform_real_inputs=False,  # TODO remove this
+            train_valid_ratio=0.9,
+            split_tickers_individually=True,
+            add_ticker_as_static=False,
+            time_features=False,
+            lags=None,
+            asset_class_dictionary=None,
+            static_ticker_type_feature=False,
     ):
         """Initialises formatter. Splits data frame into training-validation-test data frames.
         This also calibrates scaling object, and transforms data for each split."""
@@ -189,9 +190,9 @@ class ModelFeatures:
             trainvalid = df.loc[years < test_boundary]
             if lags:
                 tickers = (
-                    trainvalid.groupby("ticker")["ticker"].count()
-                    * (1.0 - train_valid_ratio)
-                ) >= total_time_steps
+                                  trainvalid.groupby("ticker")["ticker"].count()
+                                  * (1.0 - train_valid_ratio)
+                          ) >= total_time_steps
                 tickers = tickers[tickers].index.tolist()
             else:
                 tickers = list(trainvalid.ticker.unique())
@@ -229,7 +230,7 @@ class ModelFeatures:
             )
             if lags:
                 tickers = (
-                    valid.groupby("ticker")["ticker"].count() > self.total_time_steps
+                        valid.groupby("ticker")["ticker"].count() > self.total_time_steps
                 )
                 tickers = tickers[tickers].index.tolist()
                 train = train[train.ticker.isin(tickers)]
@@ -254,7 +255,7 @@ class ModelFeatures:
                 pd.concat(
                     [
                         trainvalid[trainvalid.ticker == t].iloc[
-                            -(self.total_time_steps - 1) :
+                        -(self.total_time_steps - 1):
                         ],  # TODO this
                         test[test.ticker == t],
                     ]
@@ -424,7 +425,6 @@ class ModelFeatures:
         # Sanity checks first.
         # Ensure only one ID and time column exist
         def _check_single_column(input_type):
-
             length = len([tup for tup in column_definition if tup[2] == input_type])
 
             if length != 1:
@@ -443,13 +443,13 @@ class ModelFeatures:
             tup
             for tup in column_definition
             if tup[1] == DataTypes.REAL_VALUED
-            and tup[2] not in {InputTypes.ID, InputTypes.TIME, InputTypes.TARGET}
+               and tup[2] not in {InputTypes.ID, InputTypes.TIME, InputTypes.TARGET}
         ]
         categorical_inputs = [
             tup
             for tup in column_definition
             if tup[1] == DataTypes.CATEGORICAL
-            and tup[2] not in {InputTypes.ID, InputTypes.TIME, InputTypes.TARGET}
+               and tup[2] not in {InputTypes.ID, InputTypes.TIME, InputTypes.TARGET}
         ]
         target = [tup for tup in column_definition if tup[2] == InputTypes.TARGET]
 
@@ -505,7 +505,7 @@ class ModelFeatures:
                 x = input_data.values
                 if time_steps >= lags:
                     return np.stack(
-                        [x[i : time_steps - (lags - 1) + i, :] for i in range(lags)],
+                        [x[i: time_steps - (lags - 1) + i, :] for i in range(lags)],
                         axis=1,
                     )
                 else:
@@ -577,7 +577,7 @@ class ModelFeatures:
                 ]
                 active_entries = np.ones((arr.shape[0], arr.shape[1], arr.shape[2]))
                 for i in range(batch_size):
-                    active_entries[i, sequence_lengths[i] :, :] = 0
+                    active_entries[i, sequence_lengths[i]:, :] = 0
                 sequence_lengths = np.array(sequence_lengths, dtype=np.int)
 
                 if "active_entries" not in data_map:
@@ -666,7 +666,7 @@ class ModelFeatures:
                     cols = col_mappings[k]
                     arr = sliced[cols].copy().values
                     arr = np.concatenate(
-                        [arr[start : start + seq_len] for start in range(0, batch_size)]
+                        [arr[start: start + seq_len] for start in range(0, batch_size)]
                     ).reshape(-1, seq_len, arr.shape[1])
 
                     if k not in data_map:
@@ -679,10 +679,10 @@ class ModelFeatures:
 
                 time_steps = len(sliced)
                 batch_size = (
-                    time_steps - self.total_time_steps + output_length
-                ) // output_length
+                                     time_steps - self.total_time_steps + output_length
+                             ) // output_length
                 active_time_steps = batch_size * output_length + (
-                    self.total_time_steps - output_length
+                        self.total_time_steps - output_length
                 )
                 disregard_time_steps = time_steps % active_time_steps
                 seq_len = self.total_time_steps
@@ -691,10 +691,10 @@ class ModelFeatures:
                     arr = sliced[cols].copy().values[disregard_time_steps:]
                     arr = np.concatenate(
                         [
-                            arr[start : start + seq_len]
+                            arr[start: start + seq_len]
                             for start in range(
-                                0, output_length * batch_size, output_length
-                            )
+                            0, output_length * batch_size, output_length
+                        )
                         ]
                     ).reshape(-1, seq_len, arr.shape[1])
 
@@ -748,7 +748,7 @@ class ModelFeatures:
                 tup
                 for tup in defn
                 if tup[1] == data_type
-                and tup[2] not in {InputTypes.ID, InputTypes.TIME, InputTypes.TARGET}
+                   and tup[2] not in {InputTypes.ID, InputTypes.TIME, InputTypes.TARGET}
             ]
 
         def _get_locations(input_types, defn):

@@ -16,11 +16,11 @@ from settings.default import (
 
 
 def main(
-    tickers: List[str],
-    cpd_module_folder: str,
-    lookback_window_length: int,
-    output_file_path: str,
-    extra_lbw: List[int],
+        tickers: List[str],
+        cpd_module_folder: str,
+        lookback_window_length: int,
+        output_file_path: str,
+        extra_lbw: List[int],
 ):
     features = pd.concat(
         [
@@ -69,7 +69,6 @@ def main(
 
 
 if __name__ == "__main__":
-
     def get_args():
         """Returns settings from command line."""
 
@@ -120,5 +119,6 @@ if __name__ == "__main__":
             FEATURES_QUANDL_FILE_PATH(args.lookback_window_length),
             args.extra_lbw,
         )
+
 
     main(*get_args())

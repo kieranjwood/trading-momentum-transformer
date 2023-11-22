@@ -27,14 +27,14 @@ def pull_pinnacle_data(ticker: str) -> pd.DataFrame:
 
 def _fill_blanks(data: pd.DataFrame):
     return data[
-        data["close"].first_valid_index() : data["close"].last_valid_index()
-    ].fillna(
+           data["close"].first_valid_index(): data["close"].last_valid_index()
+           ].fillna(
         method="ffill"
     )  # .interpolate()
 
 
 def pull_pinnacle_data_multiple(
-    tickers: List[str], fill_missing_dates=False
+        tickers: List[str], fill_missing_dates=False
 ) -> pd.DataFrame:
     data = pd.concat(
         [pull_pinnacle_data(ticker).assign(ticker=ticker).copy() for ticker in tickers]

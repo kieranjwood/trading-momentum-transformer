@@ -15,7 +15,7 @@ HALFLIFE_WINSORISE = 252
 
 
 def read_changepoint_results_and_fill_na(
-    file_path: str, lookback_window_length: int
+        file_path: str, lookback_window_length: int
 ) -> pd.DataFrame:
     """Read output data from changepoint detection module into a dataframe.
     For rows where the module failed, information for changepoint location and severity is
@@ -36,7 +36,7 @@ def read_changepoint_results_and_fill_na(
         .dropna()  # if first values are na
         .assign(
             cp_location_norm=lambda row: (row["t"] - row["cp_location"])
-            / lookback_window_length
+                                         / lookback_window_length
         )  # fill by assigning the previous cp and score, then recalculate norm location
     )
 
@@ -77,7 +77,7 @@ def deep_momentum_strategy_features(df_asset: pd.DataFrame) -> pd.DataFrame:
         ~df_asset["close"].isna()
         | ~df_asset["close"].isnull()
         | (df_asset["close"] > 1e-8)  # price is zero
-    ].copy()
+        ].copy()
 
     # winsorize using rolling 5X standard deviations to remove outliers
     df_asset["srs"] = df_asset["close"]
@@ -96,9 +96,9 @@ def deep_momentum_strategy_features(df_asset: pd.DataFrame) -> pd.DataFrame:
 
     def calc_normalised_returns(day_offset):
         return (
-            calc_returns(df_asset["srs"], day_offset)
-            / df_asset["daily_vol"]
-            / np.sqrt(day_offset)
+                calc_returns(df_asset["srs"], day_offset)
+                / df_asset["daily_vol"]
+                / np.sqrt(day_offset)
         )
 
     df_asset["norm_daily_return"] = calc_normalised_returns(1)
@@ -128,12 +128,12 @@ def deep_momentum_strategy_features(df_asset: pd.DataFrame) -> pd.DataFrame:
         df_asset["month_of_year"] = []
         df_asset["year"] = []
         df_asset["date"] = []
-        
+
     return df_asset.dropna()
 
 
 def include_changepoint_features(
-    features: pd.DataFrame, cpd_folder_name: pd.DataFrame, lookback_window_length: int
+        features: pd.DataFrame, cpd_folder_name: pd.DataFrame, lookback_window_length: int
 ) -> pd.DataFrame:
     """combine CP features and DMN featuress
 

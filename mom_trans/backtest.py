@@ -27,8 +27,9 @@ physical_devices = tf.config.list_physical_devices("GPU")
 if physical_devices:
     tf.config.experimental.set_memory_growth(physical_devices[0], enable=True)
 
+
 def _get_directory_name(
-    experiment_name: str, train_interval: Tuple[int, int, int] = None
+        experiment_name: str, train_interval: Tuple[int, int, int] = None
 ) -> str:
     """The directory name for saving results
 
@@ -65,7 +66,7 @@ def _basis_point_suffix(basis_points: float = None) -> str:
 
 
 def _interval_suffix(
-    train_interval: Tuple[int, int, int], basis_points: float = None
+        train_interval: Tuple[int, int, int], basis_points: float = None
 ) -> str:
     """Interval points suffix
 
@@ -82,7 +83,7 @@ def _interval_suffix(
 
 
 def _results_from_all_windows(
-    experiment_name: str, train_intervals: List[Tuple[int, int, int]]
+        experiment_name: str, train_intervals: List[Tuple[int, int, int]]
 ):
     """Save a json with results from all windows
 
@@ -108,14 +109,14 @@ def _get_asset_classes(asset_class_dictionary: Dict[str, str]):
 
 
 def _captured_returns_from_all_windows(
-    experiment_name: str,
-    train_intervals: List[Tuple[int, int, int]],
-    volatility_rescaling: bool = True,
-    only_standard_windows: bool = True,
-    volatilites_known: List[float] = None,
-    filter_identifiers: List[str] = None,
-    captured_returns_col: str = "captured_returns",
-    standard_window_size: int = 1,
+        experiment_name: str,
+        train_intervals: List[Tuple[int, int, int]],
+        volatility_rescaling: bool = True,
+        only_standard_windows: bool = True,
+        volatilites_known: List[float] = None,
+        filter_identifiers: List[str] = None,
+        captured_returns_col: str = "captured_returns",
+        standard_window_size: int = 1,
 ) -> pd.Series:
     """get sereis of captured returns from all intervals
 
@@ -136,7 +137,7 @@ def _captured_returns_from_all_windows(
     volatilites = volatilites_known if volatilites_known else []
     for interval in train_intervals:
         if only_standard_windows and (
-            interval[2] - interval[1] == standard_window_size
+                interval[2] - interval[1] == standard_window_size
         ):
             df = pd.read_csv(
                 os.path.join(
@@ -160,12 +161,12 @@ def _captured_returns_from_all_windows(
 
 
 def save_results(
-    results_sw: pd.DataFrame,
-    output_directory: str,
-    train_interval: Tuple[int, int, int],
-    num_identifiers: int,
-    asset_class_dictionary: Dict[str, str],
-    extra_metrics: dict = {},
+        results_sw: pd.DataFrame,
+        output_directory: str,
+        train_interval: Tuple[int, int, int],
+        num_identifiers: int,
+        asset_class_dictionary: Dict[str, str],
+        extra_metrics: dict = {},
 ):
     """save results json
 
@@ -223,10 +224,10 @@ def save_results(
 
 
 def aggregate_and_save_all_windows(
-    experiment_name: str,
-    train_intervals: List[Tuple[int, int, int]],
-    asset_class_dictionary: Dict[str, str],
-    standard_window_size: int,
+        experiment_name: str,
+        train_intervals: List[Tuple[int, int, int]],
+        asset_class_dictionary: Dict[str, str],
+        standard_window_size: int,
 ):
     """Save a results summary, aggregating all windows
 
@@ -330,7 +331,7 @@ def aggregate_and_save_all_windows(
                 if interval[2] - interval[1] == standard_window_size:
                     srs = all_captured_returns[
                         (yrs >= interval[1]) & (yrs < interval[2])
-                    ]
+                        ]
                     rescaled_dict = calc_performance_metrics_subset(
                         srs, f"_rescaled{suffix}"
                     )
@@ -357,14 +358,14 @@ def aggregate_and_save_all_windows(
 
 
 def run_single_window(
-    experiment_name: str,
-    features_file_path: str,
-    train_interval: Tuple[int, int, int],
-    params: dict,
-    changepoint_lbws: List[int],
-    skip_if_completed: bool = True,
-    asset_class_dictionary: Dict[str, str] = None,
-    hp_minibatch_size: List[int] = HP_MINIBATCH_SIZE,
+        experiment_name: str,
+        features_file_path: str,
+        train_interval: Tuple[int, int, int],
+        params: dict,
+        changepoint_lbws: List[int],
+        skip_if_completed: bool = True,
+        asset_class_dictionary: Dict[str, str] = None,
+        hp_minibatch_size: List[int] = HP_MINIBATCH_SIZE,
 ):
     """Backtest for a single test window
 
@@ -539,14 +540,14 @@ def run_single_window(
 
 
 def run_all_windows(
-    experiment_name: str,
-    features_file_path: str,
-    train_intervals: List[Tuple[int, int, int]],
-    params: dict,
-    changepoint_lbws: List[int],
-    asset_class_dictionary=Dict[str, str],
-    hp_minibatch_size=HP_MINIBATCH_SIZE,
-    standard_window_size=1,
+        experiment_name: str,
+        features_file_path: str,
+        train_intervals: List[Tuple[int, int, int]],
+        params: dict,
+        changepoint_lbws: List[int],
+        asset_class_dictionary=Dict[str, str],
+        hp_minibatch_size=HP_MINIBATCH_SIZE,
+        standard_window_size=1,
 ):
     """Run experiment for multiple test intervals and aggregate results
 
@@ -594,11 +595,11 @@ def intermediate_momentum_position(w: float, returns_data: pd.DataFrame) -> pd.S
 
 
 def run_classical_methods(
-    features_file_path,
-    train_intervals,
-    reference_experiment,
-    long_only_experiment_name="long_only",
-    tsmom_experiment_name="tsmom",
+        features_file_path,
+        train_intervals,
+        reference_experiment,
+        long_only_experiment_name="long_only",
+        tsmom_experiment_name="tsmom",
 ):
     """Run classical TSMOM method and Long Only as defined in https://arxiv.org/pdf/2105.13727.pdf.
 
@@ -634,7 +635,7 @@ def run_classical_methods(
         returns_data["position"] = intermediate_momentum_position(0, returns_data)
         # returns_data["returns"] = returns_data["scaled_return_target"]
         returns_data["captured_returns"] = (
-            returns_data["position"] * returns_data["returns"]
+                returns_data["position"] * returns_data["returns"]
         )
         returns_data = returns_data.reset_index()[
             ["identifier", "time", "returns", "position", "captured_returns"]
@@ -646,6 +647,6 @@ def run_classical_methods(
             os.mkdir(directory)
         returns_data["position"] = 1.0
         returns_data["captured_returns"] = (
-            returns_data["position"] * returns_data["returns"]
+                returns_data["position"] * returns_data["returns"]
         )
         returns_data.to_csv(f"{directory}/captured_returns_sw.csv")

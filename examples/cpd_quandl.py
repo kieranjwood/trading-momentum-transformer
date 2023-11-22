@@ -8,7 +8,7 @@ from settings.default import CPD_DEFAULT_LBW, USE_KM_HYP_TO_INITIALISE_KC
 
 
 def main(
-    ticker: str, output_file_path: str, start_date: dt.datetime, end_date: dt.datetime, lookback_window_length :int
+        ticker: str, output_file_path: str, start_date: dt.datetime, end_date: dt.datetime, lookback_window_length: int
 ):
     data = pull_quandl_sample_data(ticker)
     data["daily_returns"] = calc_returns(data["close"])
@@ -19,7 +19,6 @@ def main(
 
 
 if __name__ == "__main__":
-
     def get_args():
         """Returns settings from command line."""
 
@@ -79,5 +78,6 @@ if __name__ == "__main__":
             end_date,
             args.lookback_window_length
         )
+
 
     main(*get_args())

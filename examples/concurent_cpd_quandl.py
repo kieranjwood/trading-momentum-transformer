@@ -1,5 +1,5 @@
-import multiprocessing
 import argparse
+import multiprocessing
 import os
 
 from settings.default import (
@@ -24,7 +24,6 @@ def main(lookback_window_length: int):
 
 
 if __name__ == "__main__":
-
     def get_args():
         """Returns settings from command line."""
 
@@ -42,5 +41,6 @@ if __name__ == "__main__":
         return [
             parser.parse_known_args()[0].lookback_window_length,
         ]
+
 
     main(*get_args())

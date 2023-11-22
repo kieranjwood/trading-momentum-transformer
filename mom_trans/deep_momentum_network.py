@@ -2,12 +2,12 @@ import collections
 import copy
 from abc import ABC, abstractmethod
 
+import keras
 import keras_tuner as kt
 import numpy as np
 import pandas as pd
 import tensorflow as tf
 from empyrical import sharpe_ratio
-import keras
 
 from mom_trans.model_inputs import ModelFeatures
 from settings.hp_grid import (
@@ -28,29 +28,29 @@ class SharpeLoss(keras.losses.Loss):
         captured_returns = weights * y_true
         mean_returns = tf.reduce_mean(captured_returns)
         return -(
-            mean_returns
-            / tf.sqrt(
-                tf.reduce_mean(tf.square(captured_returns))
-                - tf.square(mean_returns)
-                + 1e-9
-            )
-            * tf.sqrt(252.0)
+                mean_returns
+                / tf.sqrt(
+            tf.reduce_mean(tf.square(captured_returns))
+            - tf.square(mean_returns)
+            + 1e-9
+        )
+                * tf.sqrt(252.0)
         )
 
 
 class SharpeValidationLoss(keras.callbacks.Callback):
     # TODO check if weights already exist and pass in best sharpe
     def __init__(
-        self,
-        inputs,
-        returns,
-        time_indices,
-        num_time,  # including a count for nulls which will be indexed as 0
-        early_stopping_patience,
-        n_multiprocessing_workers,
-        weights_save_location="tmp/checkpoint",
-        # verbose=0,
-        min_delta=1e-4,
+            self,
+            inputs,
+            returns,
+            time_indices,
+            num_time,  # including a count for nulls which will be indexed as 0
+            early_stopping_patience,
+            n_multiprocessing_workers,
+            weights_save_location="tmp/checkpoint",
+            # verbose=0,
+            min_delta=1e-4,
     ):
         super(keras.callbacks.Callback, self).__init__()
         self.inputs = inputs
@@ -88,12 +88,12 @@ class SharpeValidationLoss(keras.callbacks.Callback):
 
         # TODO sharpe
         sharpe = (
-            tf.reduce_mean(captured_returns)
-            / tf.sqrt(
-                tf.math.reduce_variance(captured_returns)
-                + tf.constant(1e-9, dtype=tf.float64)
-            )
-            * tf.sqrt(tf.constant(252.0, dtype=tf.float64))
+                tf.reduce_mean(captured_returns)
+                / tf.sqrt(
+            tf.math.reduce_variance(captured_returns)
+            + tf.constant(1e-9, dtype=tf.float64)
+        )
+                * tf.sqrt(tf.constant(252.0, dtype=tf.float64))
         ).numpy()
         if sharpe > self.best_sharpe + self.min_delta:
             self.best_sharpe = sharpe
@@ -114,16 +114,16 @@ class SharpeValidationLoss(keras.callbacks.Callback):
 # Tuner = RandomSearch
 class TunerValidationLoss(kt.tuners.RandomSearch):
     def __init__(
-        self,
-        hypermodel,
-        objective,
-        max_trials,
-        hp_minibatch_size,
-        seed=None,
-        hyperparameters=None,
-        tune_new_entries=True,
-        allow_new_entries=True,
-        **kwargs,
+            self,
+            hypermodel,
+            objective,
+            max_trials,
+            hp_minibatch_size,
+            seed=None,
+            hyperparameters=None,
+            tune_new_entries=True,
+            allow_new_entries=True,
+            **kwargs,
     ):
         self.hp_minibatch_size = hp_minibatch_size
         super().__init__(
@@ -146,16 +146,16 @@ class TunerValidationLoss(kt.tuners.RandomSearch):
 
 class TunerDiversifiedSharpe(kt.tuners.RandomSearch):
     def __init__(
-        self,
-        hypermodel,
-        objective,
-        max_trials,
-        hp_minibatch_size,
-        seed=None,
-        hyperparameters=None,
-        tune_new_entries=True,
-        allow_new_entries=True,
-        **kwargs,
+            self,
+            hypermodel,
+            objective,
+            max_trials,
+            hp_minibatch_size,
+            seed=None,
+            hyperparameters=None,
+            tune_new_entries=True,
+            allow_new_entries=True,
+            **kwargs,
     ):
         self.hp_minibatch_size = hp_minibatch_size
         super().__init__(
@@ -334,19 +334,19 @@ class DeepMomentumNetworkModel(ABC):
         return best_hp, best_model
 
     def load_model(
-        self,
-        hyperparameters,
+            self,
+            hyperparameters,
     ) -> keras.Model:
         hyp = kt.engine.hyperparameters.HyperParameters()
         hyp.values = hyperparameters
         return self.tuner.hypermodel.build(hyp)
 
     def fit(
-        self,
-        train_data: np.array,
-        valid_data: np.array,
-        hyperparameters,
-        temp_folder: str,
+            self,
+            train_data: np.array,
+            valid_data: np.array,
+            hyperparameters,
+            temp_folder: str,
     ):
         data, labels, active_flags, _, _ = ModelFeatures._unpack(train_data)
         val_data, val_labels, val_flags, _, val_time = ModelFeatures._unpack(valid_data)
@@ -439,12 +439,12 @@ class DeepMomentumNetworkModel(ABC):
             return metrics["loss"]
 
     def get_positions(
-        self,
-        data,
-        model,
-        sliding_window=True,
-        years_geq=np.iinfo(np.int32).min,
-        years_lt=np.iinfo(np.int32).max,
+            self,
+            data,
+            model,
+            sliding_window=True,
+            years_geq=np.iinfo(np.int32).min,
+            years_lt=np.iinfo(np.int32).max,
     ):
         inputs, outputs, _, identifier, time = ModelFeatures._unpack(data)
         if sliding_window:
@@ -491,7 +491,7 @@ class DeepMomentumNetworkModel(ABC):
 
 class LstmDeepMomentumNetworkModel(DeepMomentumNetworkModel):
     def __init__(
-        self, project_name, hp_directory, hp_minibatch_size=HP_MINIBATCH_SIZE, **params
+            self, project_name, hp_directory, hp_minibatch_size=HP_MINIBATCH_SIZE, **params
     ):
         super().__init__(project_name, hp_directory, hp_minibatch_size, **params)
 

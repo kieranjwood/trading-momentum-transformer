@@ -1,8 +1,9 @@
 """Many components in this file are adapted from https://github.com/google-research/google-research/tree/master/tft"""
-import tensorflow as tf
-import keras
 import gc
+
+import keras
 import numpy as np
+import tensorflow as tf
 
 concat = keras.backend.concatenate
 stack = keras.backend.stack
@@ -23,6 +24,7 @@ from settings.hp_grid import (
     HP_MAX_GRADIENT_NORM,
     HP_MINIBATCH_SIZE,
 )
+
 
 def tf_stack(x, axis=0):
     if not isinstance(x, list):
@@ -46,12 +48,12 @@ def linear_layer(size, activation=None, use_time_distributed=False, use_bias=Tru
 
 
 def apply_mlp(
-    inputs,
-    hidden_size,
-    output_size,
-    output_activation=None,
-    hidden_activation="tanh",
-    use_time_distributed=False,
+        inputs,
+        hidden_size,
+        output_size,
+        output_activation=None,
+        hidden_activation="tanh",
+        use_time_distributed=False,
 ):
     """Applies simple feed-forward network to an input.
     Args:
@@ -77,11 +79,11 @@ def apply_mlp(
 
 
 def apply_gating_layer(
-    x,
-    hidden_layer_size: int,
-    dropout_rate: float = None,
-    use_time_distributed: bool = True,
-    activation=None,
+        x,
+        hidden_layer_size: int,
+        dropout_rate: float = None,
+        use_time_distributed: bool = True,
+        activation=None,
 ):
     """Applies a Gated Linear Unit (GLU) to an input.
     Args:
@@ -126,13 +128,13 @@ def add_and_norm(x_list):
 
 
 def gated_residual_network(
-    x,
-    hidden_layer_size: int,
-    output_size: int = None,
-    dropout_rate: float = None,
-    use_time_distributed: bool = True,
-    additional_context=None,
-    return_gate: bool = False,
+        x,
+        hidden_layer_size: int,
+        output_size: int = None,
+        dropout_rate: float = None,
+        use_time_distributed: bool = True,
+        additional_context=None,
+        return_gate: bool = False,
 ):
     """Applies the gated residual network (GRN) as defined in paper.
     Args:
@@ -419,7 +421,7 @@ class TftDeepMomentumNetworkModel(DeepMomentumNetworkModel):
             trans_emb_list = []
             for i in range(num_static):
                 e = gated_residual_network(
-                    embedding[:, i : i + 1, :],
+                    embedding[:, i: i + 1, :],
                     self.hidden_layer_size,
                     dropout_rate=self.dropout_rate,
                     use_time_distributed=False,
@@ -578,7 +580,7 @@ class TftDeepMomentumNetworkModel(DeepMomentumNetworkModel):
 
         mask = get_decoder_mask(enriched)
         x, self_att = self_attn_layer(enriched, enriched, enriched, mask=mask)
-        
+
         x, _ = apply_gating_layer(
             x, self.hidden_layer_size, dropout_rate=self.dropout_rate, activation=None
         )
@@ -605,8 +607,8 @@ class TftDeepMomentumNetworkModel(DeepMomentumNetworkModel):
             "static_flags": static_weights[..., 0] if static_inputs is not None else [],
             "historical_flags": flags[..., 0, :],
             "future_flags": flags[
-                ..., 0, :
-            ],  # TODO have placed all in historical - this is an artefact
+                            ..., 0, :
+                            ],  # TODO have placed all in historical - this is an artefact
         }
 
         if self.force_output_sharpe_length:
@@ -681,7 +683,6 @@ class TftDeepMomentumNetworkModel(DeepMomentumNetworkModel):
 
         embeddings = []
         for i in range(num_categorical_variables):
-
             embedding = keras.Sequential(
                 [
                     keras.layers.InputLayer([time_steps]),
@@ -708,16 +709,16 @@ class TftDeepMomentumNetworkModel(DeepMomentumNetworkModel):
         # Static inputs
         if self._static_input_loc:
             static_inputs = [
-                keras.layers.Dense(self.hidden_layer_size)(
-                    regular_inputs[:, 0, i : i + 1]
-                )
-                for i in range(num_regular_variables)
-                if i in self._static_input_loc
-            ] + [
-                embedded_inputs[i][:, 0, :]
-                for i in range(num_categorical_variables)
-                if i + num_regular_variables in self._static_input_loc
-            ]
+                                keras.layers.Dense(self.hidden_layer_size)(
+                                    regular_inputs[:, 0, i: i + 1]
+                                )
+                                for i in range(num_regular_variables)
+                                if i in self._static_input_loc
+                            ] + [
+                                embedded_inputs[i][:, 0, :]
+                                for i in range(num_categorical_variables)
+                                if i + num_regular_variables in self._static_input_loc
+                            ]
             static_inputs = keras.backend.stack(static_inputs, axis=1)
 
         else:
@@ -742,9 +743,9 @@ class TftDeepMomentumNetworkModel(DeepMomentumNetworkModel):
         wired_embeddings = []
         for i in range(num_categorical_variables):
             if (
-                i
-                not in self._known_categorical_input_idx
-                # and i + num_regular_variables not in self._input_obs_loc
+                    i
+                    not in self._known_categorical_input_idx
+                    # and i + num_regular_variables not in self._input_obs_loc
             ):
                 e = embeddings[i](categorical_inputs[:, :, i])
                 wired_embeddings.append(e)
@@ -752,9 +753,9 @@ class TftDeepMomentumNetworkModel(DeepMomentumNetworkModel):
         unknown_inputs = []
         for i in range(regular_inputs.shape[-1]):
             if (
-                i not in self._known_regular_input_idx
+                    i not in self._known_regular_input_idx
             ):  # and i not in self._input_obs_loc:
-                e = convert_real_to_embedding(regular_inputs[Ellipsis, i : i + 1])
+                e = convert_real_to_embedding(regular_inputs[Ellipsis, i: i + 1])
                 unknown_inputs.append(e)
 
         if unknown_inputs + wired_embeddings:
@@ -766,7 +767,7 @@ class TftDeepMomentumNetworkModel(DeepMomentumNetworkModel):
 
         # A priori known inputs
         known_regular_inputs = [
-            convert_real_to_embedding(regular_inputs[Ellipsis, i : i + 1])
+            convert_real_to_embedding(regular_inputs[Ellipsis, i: i + 1])
             for i in self._known_regular_input_idx
             if i not in self._static_input_loc
         ]
@@ -781,8 +782,8 @@ class TftDeepMomentumNetworkModel(DeepMomentumNetworkModel):
         )
 
         return unknown_inputs, known_combined_layer, static_inputs
-    
-    def get_attention(self, data, batch_size, mask = None):
+
+    def get_attention(self, data, batch_size, mask=None):
         """Computes TFT attention weights for a given dataset.
         Args:
           df: Input dataframe
@@ -822,7 +823,7 @@ class TftDeepMomentumNetworkModel(DeepMomentumNetworkModel):
 
         # Split up inputs into batches
         batched_inputs = [
-            inputs[i * batch_size : (i + 1) * batch_size, Ellipsis]
+            inputs[i * batch_size: (i + 1) * batch_size, Ellipsis]
             for i in range(num_batches)
         ]
 
