@@ -117,7 +117,7 @@ def deep_momentum_strategy_features(df_asset: pd.DataFrame) -> pd.DataFrame:
     if len(df_asset):
         df_asset["day_of_week"] = df_asset.index.dayofweek
         df_asset["day_of_month"] = df_asset.index.day
-        df_asset["week_of_year"] = df_asset.index.weekofyear
+        df_asset["week_of_year"] = df_asset.index.isocalendar().week
         df_asset["month_of_year"] = df_asset.index.month
         df_asset["year"] = df_asset.index.year
         df_asset["date"] = df_asset.index  # duplication but sometimes makes life easier

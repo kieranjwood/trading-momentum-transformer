@@ -630,7 +630,7 @@ class TftDeepMomentumNetworkModel(DeepMomentumNetworkModel):
 
         self._attention_components = attention_components
 
-        adam = keras.optimizers.Adam(
+        adam = keras.optimizers.legacy.Adam(
             lr=self.learning_rate, clipnorm=self.max_gradient_norm
         )
 
