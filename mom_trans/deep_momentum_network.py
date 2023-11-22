@@ -1,20 +1,15 @@
-import os
-import json
-import pathlib
-import shutil
+import collections
 import copy
-
-from keras_tuner.tuners.randomsearch import RandomSearch
 from abc import ABC, abstractmethod
 
-from tensorflow import keras
-import tensorflow as tf
+import keras_tuner as kt
 import numpy as np
 import pandas as pd
-import collections
+import tensorflow as tf
+from empyrical import sharpe_ratio
+import keras
 
-import keras_tuner as kt
-
+from mom_trans.model_inputs import ModelFeatures
 from settings.hp_grid import (
     HP_HIDDEN_LAYER_SIZE,
     HP_DROPOUT_RATE,
@@ -23,13 +18,8 @@ from settings.hp_grid import (
     HP_MINIBATCH_SIZE,
 )
 
-from settings.fixed_params import MODLE_PARAMS
 
-from mom_trans.model_inputs import ModelFeatures
-from empyrical import sharpe_ratio
-
-
-class SharpeLoss(tf.keras.losses.Loss):
+class SharpeLoss(keras.losses.Loss):
     def __init__(self, output_size: int = 1):
         self.output_size = output_size  # in case we have multiple targets => output dim[-1] = output_size * n_quantiles
         super().__init__()
@@ -295,7 +285,7 @@ class DeepMomentumNetworkModel(ABC):
                     self.early_stopping_patience,
                     self.n_multiprocessing_workers,
                 ),
-                tf.keras.callbacks.TerminateOnNaN(),
+                keras.callbacks.TerminateOnNaN(),
             ]
             # self.model.run_eagerly = True
             self.tuner.search(
@@ -312,12 +302,12 @@ class DeepMomentumNetworkModel(ABC):
             )
         else:
             callbacks = [
-                tf.keras.callbacks.EarlyStopping(
+                keras.callbacks.EarlyStopping(
                     monitor="val_loss",
                     patience=self.early_stopping_patience,
                     min_delta=1e-4,
                 ),
-                # tf.keras.callbacks.TerminateOnNaN(),
+                # keras.callbacks.TerminateOnNaN(),
             ]
             # self.model.run_eagerly = True
             self.tuner.search(
@@ -346,7 +336,7 @@ class DeepMomentumNetworkModel(ABC):
     def load_model(
         self,
         hyperparameters,
-    ) -> tf.keras.Model:
+    ) -> keras.Model:
         hyp = kt.engine.hyperparameters.HyperParameters()
         hyp.values = hyperparameters
         return self.tuner.hypermodel.build(hyp)
@@ -375,7 +365,7 @@ class DeepMomentumNetworkModel(ABC):
                     self.n_multiprocessing_workers,
                     weights_save_location=temp_folder,
                 ),
-                tf.keras.callbacks.TerminateOnNaN(),
+                keras.callbacks.TerminateOnNaN(),
             ]
             # self.model.run_eagerly = True
             model.fit(
@@ -392,13 +382,13 @@ class DeepMomentumNetworkModel(ABC):
             model.load_weights(temp_folder)
         else:
             callbacks = [
-                tf.keras.callbacks.EarlyStopping(
+                keras.callbacks.EarlyStopping(
                     monitor="val_loss",
                     patience=self.early_stopping_patience,
                     min_delta=1e-4,
                     restore_best_weights=True,
                 ),
-                tf.keras.callbacks.TerminateOnNaN(),
+                keras.callbacks.TerminateOnNaN(),
             ]
             # self.model.run_eagerly = True
             model.fit(
@@ -513,7 +503,7 @@ class LstmDeepMomentumNetworkModel(DeepMomentumNetworkModel):
         # minibatch_size = hp.Choice("hidden_layer_size", HP_MINIBATCH_SIZE)
 
         input = keras.Input((self.time_steps, self.input_size))
-        lstm = tf.keras.layers.LSTM(
+        lstm = keras.layers.LSTM(
             hidden_layer_size,
             return_sequences=True,
             dropout=dropout_rate,
@@ -526,8 +516,8 @@ class LstmDeepMomentumNetworkModel(DeepMomentumNetworkModel):
         )(input)
         dropout = keras.layers.Dropout(dropout_rate)(lstm)
 
-        output = tf.keras.layers.TimeDistributed(
-            tf.keras.layers.Dense(
+        output = keras.layers.TimeDistributed(
+            keras.layers.Dense(
                 self.output_size,
                 activation=tf.nn.tanh,
                 kernel_constraint=keras.constraints.max_norm(3),

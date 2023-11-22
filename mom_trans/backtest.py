@@ -1,18 +1,14 @@
-import os
-from typing import Tuple, List, Dict
-import tensorflow as tf
-import pandas as pd
-import datetime as dt
-import numpy as np
-import shutil
-import gc
 import copy
-
+import gc
 import json
+import os
+import shutil
+from typing import Tuple, List, Dict
 
-from mom_trans.model_inputs import ModelFeatures
-from mom_trans.deep_momentum_network import LstmDeepMomentumNetworkModel
-from mom_trans.momentum_transformer import TftDeepMomentumNetworkModel
+import numpy as np
+import pandas as pd
+import tensorflow as tf
+
 from mom_trans.classical_strategies import (
     VOL_TARGET,
     calc_performance_metrics,
@@ -21,9 +17,10 @@ from mom_trans.classical_strategies import (
     calc_net_returns,
     annual_volatility,
 )
-
+from mom_trans.deep_momentum_network import LstmDeepMomentumNetworkModel
+from mom_trans.model_inputs import ModelFeatures
+from mom_trans.momentum_transformer import TftDeepMomentumNetworkModel
 from settings.default import BACKTEST_AVERAGE_BASIS_POINTS
-
 from settings.hp_grid import HP_MINIBATCH_SIZE
 
 physical_devices = tf.config.list_physical_devices("GPU")

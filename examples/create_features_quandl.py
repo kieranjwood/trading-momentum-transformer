@@ -1,18 +1,17 @@
 import argparse
-import datetime as dt
 from typing import List
 
 import pandas as pd
 
 from data.pull_data import pull_quandl_sample_data
+from mom_trans.data_prep import (
+    deep_momentum_strategy_features,
+    include_changepoint_features,
+)
 from settings.default import (
     QUANDL_TICKERS,
     CPD_QUANDL_OUTPUT_FOLDER,
     FEATURES_QUANDL_FILE_PATH,
-)
-from mom_trans.data_prep import (
-    deep_momentum_strategy_features,
-    include_changepoint_features,
 )
 
 

@@ -1,12 +1,11 @@
 import os
 from typing import List
 
-import pandas as pd
-import yfinance as yf
-
 import numpy as np
+import pandas as pd
 
 from settings.default import PINNACLE_DATA_CUT, PINNACLE_DATA_FOLDER
+
 
 def pull_quandl_sample_data(ticker: str) -> pd.DataFrame:
     return (

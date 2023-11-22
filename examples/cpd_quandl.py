@@ -1,12 +1,9 @@
 import argparse
 import datetime as dt
 
-import pandas as pd
-
 import mom_trans.changepoint_detection as cpd
-from mom_trans.data_prep import calc_returns
 from data.pull_data import pull_quandl_sample_data
-
+from mom_trans.data_prep import calc_returns
 from settings.default import CPD_DEFAULT_LBW, USE_KM_HYP_TO_INITIALISE_KC
 
 

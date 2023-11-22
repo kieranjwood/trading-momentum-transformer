@@ -1,6 +1,6 @@
 """Many components in this file are adapted from https://github.com/google-research/google-research/tree/master/tft"""
 import tensorflow as tf
-from tensorflow import keras
+import keras
 import gc
 import numpy as np
 
@@ -806,7 +806,7 @@ class TftDeepMomentumNetworkModel(DeepMomentumNetworkModel):
             attention_weights = {}
 
             for k in self._attention_components:
-                extractor = tf.keras.Model(
+                extractor = keras.Model(
                     inputs=input_placeholder, outputs=self._attention_components[k]
                 )
                 attention_weight = extractor(input_batch.astype(np.float32))
