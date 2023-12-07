@@ -11,6 +11,7 @@ DEPTH = 1
 
 
 def main(api_key: str):
+    logging.basicConfig(format="%(asctime)s %(levelname)-8s [%(module)s:%(lineno)d] %(message)s", level=logging.INFO)
     quandl.ApiConfig.api_key = api_key
 
     if not os.path.exists(os.path.join("data", "quandl")):
@@ -21,8 +22,9 @@ def main(api_key: str):
         try:
             data = quandl.get(f"{t}{DEPTH}", start_date="1988-01-01")
             if ("Settle" in data.columns) and (data.index.min() <= dt.datetime(2015, 1, 1)):
-                logging.info(f"Writing ticker {t}")
-                data[["Settle"]].to_csv(os.path.join("data", "quandl", f"{t.split('/')[-1]}.csv"))
+                file_path = os.path.join("data", "quandl", f"{t.split('/')[-1]}.csv")
+                logging.info(f"Writing ticker {t} to {file_path}")
+                data[["Settle"]].to_csv(file_path)
         except BaseException as ex:
             logging.error(f"Failed to download ticker {t}: {ex}")
 
