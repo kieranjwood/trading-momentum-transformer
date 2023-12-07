@@ -1,4 +1,5 @@
 import argparse
+import logging
 from typing import List
 
 import pandas as pd
@@ -22,11 +23,12 @@ def main(
         output_file_path: str,
         extra_lbw: List[int],
 ):
+    logging.basicConfig(format="%(asctime)s %(levelname)-8s [%(module)s:%(lineno)d] %(message)s", level=logging.INFO)
+
+    logging.info(f"Creating features")
     features = pd.concat(
         [
-            deep_momentum_strategy_features(pull_quandl_sample_data(ticker)).assign(
-                ticker=ticker
-            )
+            deep_momentum_strategy_features(pull_quandl_sample_data(ticker)).assign(ticker=ticker)
             for ticker in tickers
         ]
     )
@@ -35,12 +37,13 @@ def main(
     features.index.name = "Date"
 
     if lookback_window_length:
-        features_w_cpd = include_changepoint_features(
-            features, cpd_module_folder, lookback_window_length
-        )
+        logging.info(f"Creating features with changepoint detection for {lookback_window_length} lookback window")
+        features_w_cpd = include_changepoint_features(features, cpd_module_folder, lookback_window_length)
 
         if extra_lbw:
             for extra in extra_lbw:
+                logging.info(f"Adding features with changepoint detection for {lookback_window_length} "
+                             f"extra lookback window")
                 extra_data = pd.read_csv(
                     output_file_path.replace(
                         f"quandl_cpd_{lookback_window_length}lbw.csv",
@@ -48,9 +51,7 @@ def main(
                     ),
                     index_col=0,
                     parse_dates=True,
-                ).reset_index()[
-                    ["date", "ticker", f"cp_rl_{extra}", f"cp_score_{extra}"]
-                ]
+                ).reset_index()[["date", "ticker", f"cp_rl_{extra}", f"cp_score_{extra}"]]
                 extra_data["date"] = pd.to_datetime(extra_data["date"])
 
                 features_w_cpd = pd.merge(
@@ -63,8 +64,10 @@ def main(
                 features_w_cpd.index.name = "Date"
         else:
             features_w_cpd.index.name = "Date"
+        logging.info(f"Saving features with changepoint detection to {output_file_path}")
         features_w_cpd.to_csv(output_file_path)
     else:
+        logging.info(f"Saving features to {output_file_path}")
         features.to_csv(output_file_path)
 
 
@@ -73,40 +76,20 @@ if __name__ == "__main__":
         """Returns settings from command line."""
 
         parser = argparse.ArgumentParser(description="Run changepoint detection module")
-        # parser.add_argument(
-        #     "cpd_module_folder",
-        #     metavar="c",
-        #     type=str,
-        #     nargs="?",
-        #     default=CPD_QUANDL_OUTPUT_FOLDER_DEFAULT,
-        #     # choices=[],
-        #     help="Input folder for CPD outputs.",
-        # )
         parser.add_argument(
             "lookback_window_length",
             metavar="l",
             type=int,
             nargs="?",
             default=None,
-            # choices=[],
             help="Input folder for CPD outputs.",
         )
-        # parser.add_argument(
-        #     "output_file_path",
-        #     metavar="f",
-        #     type=str,
-        #     nargs="?",
-        #     default=FEATURES_QUANDL_FILE_PATH_DEFAULT,
-        #     # choices=[],
-        #     help="Output file location for csv.",
-        # )
         parser.add_argument(
             "extra_lbw",
             metavar="-e",
             type=int,
             nargs="*",
             default=[],
-            # choices=[],
             help="Fill missing prices.",
         )
 

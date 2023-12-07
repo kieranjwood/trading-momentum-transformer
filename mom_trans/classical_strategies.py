@@ -127,7 +127,7 @@ def calc_daily_vol(daily_returns):
     return (
         daily_returns.ewm(span=VOL_LOOKBACK, min_periods=VOL_LOOKBACK)
         .std()
-        .fillna(method="bfill")
+        .bfill()
     )
 
 
@@ -202,8 +202,8 @@ class MACDStrategy:
                 srs.ewm(halflife=_calc_halflife(short_timescale)).mean()
                 - srs.ewm(halflife=_calc_halflife(long_timescale)).mean()
         )
-        q = macd / srs.rolling(63).std().fillna(method="bfill")
-        return q / q.rolling(252).std().fillna(method="bfill")
+        q = macd / srs.rolling(63).std().bfill()
+        return q / q.rolling(252).std().bfill()
 
     @staticmethod
     def scale_signal(y):
