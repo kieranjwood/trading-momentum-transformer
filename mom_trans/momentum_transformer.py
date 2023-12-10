@@ -354,36 +354,13 @@ class TftDeepMomentumNetworkModel(DeepMomentumNetworkModel):
         combined_input_size = self.input_size
         # encoder_steps = self.num_encoder_steps
 
-        all_inputs = keras.layers.Input(
-            shape=(
-                time_steps,
-                combined_input_size,
-            ),
-            name="input",
-        )
-
-        (
-            unknown_inputs,
-            known_combined_layer,
-            # obs_inputs,
-            static_inputs,
-        ) = self.get_tft_embeddings(all_inputs)
+        all_inputs = keras.layers.Input(shape=(time_steps, combined_input_size,), name="input")
+        unknown_inputs, known_combined_layer, static_inputs = self.get_tft_embeddings(all_inputs)
 
         if unknown_inputs is not None:
-            historical_inputs = concat(
-                [
-                    unknown_inputs,
-                    known_combined_layer,
-                ],
-                axis=-1,
-            )
+            historical_inputs = concat([unknown_inputs, known_combined_layer], axis=-1)
         else:
-            historical_inputs = concat(
-                [
-                    known_combined_layer,
-                ],
-                axis=-1,
-            )
+            historical_inputs = concat([known_combined_layer], axis=-1)
 
         def static_combine_and_mask(embedding):
             """Applies variable selection network to static inputs.
@@ -399,9 +376,7 @@ class TftDeepMomentumNetworkModel(DeepMomentumNetworkModel):
             _, num_static, static_dim = embedding.get_shape().as_list()[-3:]
 
             shape = tf.shape(embedding)
-            flatten = tf.reshape(
-                embedding, tf.concat([shape[:-2], [num_static * static_dim]], axis=-1)
-            )
+            flatten = tf.reshape(embedding, tf.concat([shape[:-2], [num_static * static_dim]], axis=-1))
 
             # Nonlinear transformation with gated residual network.
             mlp_outputs = gated_residual_network(
@@ -414,9 +389,7 @@ class TftDeepMomentumNetworkModel(DeepMomentumNetworkModel):
             )
 
             sparse_weights = keras.layers.Activation("softmax")(mlp_outputs)
-            sparse_weights = Lambda(tf.expand_dims, arguments={"axis": -1})(
-                sparse_weights
-            )
+            sparse_weights = Lambda(tf.expand_dims, arguments={"axis": -1})(sparse_weights)
 
             trans_emb_list = []
             for i in range(num_static):
@@ -506,9 +479,7 @@ class TftDeepMomentumNetworkModel(DeepMomentumNetworkModel):
             )
 
             sparse_weights = keras.layers.Activation("softmax")(mlp_outputs)
-            sparse_weights = Lambda(tf.expand_dims, arguments={"axis": -2})(
-                sparse_weights
-            )
+            sparse_weights = Lambda(tf.expand_dims, arguments={"axis": -2})(sparse_weights)
 
             # Non-linear Processing & weight application
             trans_emb_list = []
@@ -606,9 +577,7 @@ class TftDeepMomentumNetworkModel(DeepMomentumNetworkModel):
             "decoder_self_attn": self_att,
             "static_flags": static_weights[..., 0] if static_inputs is not None else [],
             "historical_flags": flags[..., 0, :],
-            "future_flags": flags[
-                            ..., 0, :
-                            ],  # TODO have placed all in historical - this is an artefact
+            "future_flags": flags[..., 0, :],  # TODO have placed all in historical - this is an artefact
         }
 
         if self.force_output_sharpe_length:
@@ -638,7 +607,7 @@ class TftDeepMomentumNetworkModel(DeepMomentumNetworkModel):
 
         sharpe_loss = SharpeLoss(self.output_size).call
 
-        model.compile(loss=sharpe_loss, optimizer=adam, sample_weight_mode="temporal")
+        model.compile(loss=sharpe_loss, optimizer=adam, sample_weight_mode="temporal", weighted_metrics=[sharpe_loss])
 
         self._input_placeholder = all_inputs
 

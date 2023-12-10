@@ -189,10 +189,7 @@ class ModelFeatures:
         if split_tickers_individually:
             trainvalid = df.loc[years < test_boundary]
             if lags:
-                tickers = (
-                                  trainvalid.groupby("ticker")["ticker"].count()
-                                  * (1.0 - train_valid_ratio)
-                          ) >= total_time_steps
+                tickers = trainvalid.groupby("ticker")["ticker"].count() * (1.0 - train_valid_ratio) >= total_time_steps
                 tickers = tickers[tickers].index.tolist()
             else:
                 tickers = list(trainvalid.ticker.unique())
@@ -252,14 +249,7 @@ class ModelFeatures:
 
         test_with_buffer = pd.concat(
             [
-                pd.concat(
-                    [
-                        trainvalid[trainvalid.ticker == t].iloc[
-                        -(self.total_time_steps - 1):
-                        ],  # TODO this
-                        test[test.ticker == t],
-                    ]
-                ).sort_index()
+                pd.concat([trainvalid[trainvalid.ticker == t].iloc[-(self.total_time_steps - 1):], test[test.ticker == t]]).sort_index()
                 for t in tickers
             ]
         )
@@ -270,9 +260,7 @@ class ModelFeatures:
                 test_ticker = test[test["ticker"] == t]
                 diff = len(test_ticker) - self.total_time_steps
                 if diff < 0:
-                    test = pd.concat(
-                        [trainvalid[trainvalid["ticker"] == t][diff:], test]
-                    )
+                    test = pd.concat([trainvalid[trainvalid["ticker"] == t][diff:], test])
                     # maybe should sort here but probably not needed
 
         self.tickers = tickers
@@ -324,9 +312,7 @@ class ModelFeatures:
 
         data = df[real_inputs].values
         self._real_scalers = sklearn.preprocessing.StandardScaler().fit(data)
-        self._target_scaler = sklearn.preprocessing.StandardScaler().fit(
-            df[[target_column]].values
-        )  # used for predictions
+        self._target_scaler = sklearn.preprocessing.StandardScaler().fit(df[[target_column]].values)  # used for predictions
 
         # Format categorical scalers
         categorical_inputs = extract_cols_from_data_type(
@@ -340,9 +326,7 @@ class ModelFeatures:
         for col in categorical_inputs:
             # Set all to str so that we don't have mixed integer/string columns
             srs = df[col].apply(str)
-            categorical_scalers[col] = sklearn.preprocessing.LabelEncoder().fit(
-                srs.values
-            )
+            categorical_scalers[col] = sklearn.preprocessing.LabelEncoder().fit(srs.values)
             num_classes.append(srs.nunique())
 
         # Set categorical scaler outputs

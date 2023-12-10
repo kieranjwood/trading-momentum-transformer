@@ -1,4 +1,4 @@
-MODLE_PARAMS = {
+MODEL_PARAMS = {
     "architecture": "TFT",
     "total_time_steps": 252,
     "early_stopping_patience": 25,

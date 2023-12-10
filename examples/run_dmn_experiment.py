@@ -1,16 +1,18 @@
 import argparse
+import logging
 import os
+from datetime import datetime
 from functools import reduce
 
 import numpy as np
 
 from mom_trans.backtest import run_all_windows
 from settings.default import QUANDL_TICKERS
-from settings.fixed_params import MODLE_PARAMS
+from settings.fixed_params import MODEL_PARAMS
 from settings.hp_grid import HP_MINIBATCH_SIZE
 
 # define the asset class of each ticker here - for this example we have not done this
-TEST_MODE = False
+TEST_MODE = True
 ASSET_CLASS_MAPPING = dict(zip(QUANDL_TICKERS, ["COMB"] * len(QUANDL_TICKERS)))
 TRAIN_VALID_RATIO = 0.90
 TIME_FEATURES = False
@@ -27,6 +29,15 @@ def main(
         test_window_size: int,
         num_repeats: int,
 ):
+    logging.basicConfig(
+        format="%(asctime)s %(levelname)-8s [%(module)s:%(lineno)d] %(message)s",
+        level=logging.INFO,
+        handlers=[
+            logging.FileHandler(f"logs/log_experiment_{datetime.utcnow().strftime('%Y-%m-%d_%H%M%S')}.log"),
+            logging.StreamHandler()
+        ]
+    )
+
     if experiment == "LSTM":
         architecture = "LSTM"
         lstm_time_steps = 63
@@ -88,7 +99,7 @@ def main(
             for y in range(test_start, test_end - 1)
         ]
 
-        params = MODLE_PARAMS.copy()
+        params = MODEL_PARAMS.copy()
         params["total_time_steps"] = lstm_time_steps
         params["architecture"] = architecture
         params["evaluate_diversified_val_sharpe"] = EVALUATE_DIVERSIFIED_VAL_SHARPE
@@ -111,6 +122,17 @@ def main(
                 "quandl_cpd_nonelbw.csv",
             )
 
+        hp_minibatch_size = [32, 64, 128] if lstm_time_steps == 252 else HP_MINIBATCH_SIZE
+
+        logging.info(f"Running experiment {PROJECT_NAME}")
+        logging.info(f"Version: {v}")
+        logging.info(f"Feature file path: {features_file_path}")
+        logging.info(f"Intervals: {intervals}")
+        logging.info(f"Parameters: {params}")
+        logging.info(f"Changepoint LBWs: {changepoint_lbws}")
+        logging.info(f"Asset class mapping: {ASSET_CLASS_MAPPING}")
+        logging.info(f"HP minibatch size: {hp_minibatch_size}")
+        logging.info(f"Test window size: {test_window_size}")
         run_all_windows(
             PROJECT_NAME,
             features_file_path,
@@ -118,7 +140,7 @@ def main(
             params,
             changepoint_lbws,
             ASSET_CLASS_MAPPING,
-            [32, 64, 128] if lstm_time_steps == 252 else HP_MINIBATCH_SIZE,
+            hp_minibatch_size,
             test_window_size,
         )
 

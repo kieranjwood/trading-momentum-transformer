@@ -1,5 +1,6 @@
 import collections
 import copy
+import logging
 from abc import ABC, abstractmethod
 
 import keras
@@ -28,15 +29,7 @@ class SharpeLoss(keras.losses.Loss):
     def call(self, y_true, weights):
         captured_returns = weights * y_true
         mean_returns = tf.reduce_mean(captured_returns)
-        return -(
-                mean_returns
-                / tf.sqrt(
-            tf.reduce_mean(tf.square(captured_returns))
-            - tf.square(mean_returns)
-            + 1e-9
-        )
-                * tf.sqrt(252.0)
-        )
+        return -(mean_returns / tf.sqrt(tf.reduce_mean(tf.square(captured_returns)) - tf.square(mean_returns) + 1e-9) * tf.sqrt(252.0))
 
 
 class SharpeValidationLoss(keras.callbacks.Callback):
@@ -82,34 +75,31 @@ class SharpeValidationLoss(keras.callbacks.Callback):
             use_multiprocessing=True,  # , batch_size=1
         )
 
-        captured_returns = tf.math.unsorted_segment_mean(
-            positions * self.returns, self.time_indices, self.num_time
-        )[1:]
+        captured_returns = tf.math.unsorted_segment_mean(positions * self.returns, self.time_indices, self.num_time)[1:]
         # ignoring null times
 
         # TODO sharpe
-        sharpe = (
-                tf.reduce_mean(captured_returns)
-                / tf.sqrt(
-            tf.math.reduce_variance(captured_returns)
-            + tf.constant(1e-9, dtype=tf.float64)
-        )
-                * tf.sqrt(tf.constant(252.0, dtype=tf.float64))
-        ).numpy()
+        sharpe = tf.reduce_mean(captured_returns) / tf.sqrt(
+            tf.math.reduce_variance(captured_returns) + tf.constant(1e-9, dtype=tf.float64) * tf.sqrt(
+                tf.constant(252.0, dtype=tf.float64))).numpy()
         if sharpe > self.best_sharpe + self.min_delta:
+            logging.info(f"Epoch {epoch} -> Sharpe on validation improved from {self.best_sharpe} to {sharpe}")
             self.best_sharpe = sharpe
             self.patience_counter = 0  # reset the count
-            # self.best_weights = self.model.get_weights()
+            logging.info(f"Epoch {epoch} -> Saving weights to {self.weights_save_location}")
             self.model.save_weights(self.weights_save_location)
         else:
-            # if self.verbose: #TODO
             self.patience_counter += 1
+            logging.info(f"Epoch {epoch} -> Sharpe on validation did not improve from {self.best_sharpe}")
+            logging.info(f"Epoch {epoch} -> Patience counter = {self.patience_counter}")
             if self.patience_counter >= self.early_stopping_patience:
+                logging.info(f"Epoch {epoch} -> Early stopping")
+                logging.info(f"Epoch {epoch} -> Loading weights from {self.weights_save_location}")
                 self.stopped_epoch = epoch
                 self.model.stop_training = True
                 self.model.load_weights(self.weights_save_location)
         logs["sharpe"] = sharpe  # for keras tuner
-        print(f"\nval_sharpe {logs['sharpe']}")
+        logging.info(f"Epoch {epoch} -> Train loss: {logs['loss']}, Val loss: {logs['val_loss']}")
 
 
 # Tuner = RandomSearch
@@ -171,17 +161,13 @@ class TunerDiversifiedSharpe(kt.tuners.RandomSearch):
         )
 
     def run_trial(self, trial, *args, **kwargs):
-        kwargs["batch_size"] = trial.hyperparameters.Choice(
-            "batch_size", values=self.hp_minibatch_size
-        )
+        kwargs["batch_size"] = trial.hyperparameters.Choice("batch_size", values=self.hp_minibatch_size)
 
         original_callbacks = kwargs.pop("callbacks", [])
 
         for callback in original_callbacks:
             if isinstance(callback, SharpeValidationLoss):
-                callback.set_weights_save_loc(
-                    self._get_checkpoint_fname(trial.trial_id)
-                )
+                callback.set_weights_save_loc(self._get_checkpoint_fname(trial.trial_id))
 
         # Run the training process multiple times.
         metrics = collections.defaultdict(list)
@@ -206,9 +192,7 @@ class TunerDiversifiedSharpe(kt.tuners.RandomSearch):
         averaged_metrics = {}
         for metric, execution_values in metrics.items():
             averaged_metrics[metric] = np.mean(execution_values)
-        self.oracle.update_trial(
-            trial.trial_id, metrics=averaged_metrics
-        )
+        self.oracle.update_trial(trial.trial_id, metrics=averaged_metrics)
 
 
 class DeepMomentumNetworkModel(ABC):
@@ -226,18 +210,16 @@ class DeepMomentumNetworkModel(ABC):
         self.evaluate_diversified_val_sharpe = params["evaluate_diversified_val_sharpe"]
         self.force_output_sharpe_length = params["force_output_sharpe_length"]
 
-        print("Deep Momentum Network params:")
-        for k in params:
-            print(f"{k} = {params[k]}")
+        logging.info(f"Deep Momentum Network params: {params}")
 
         # To build model
         def model_builder(hp):
             return self.model_builder(hp)
 
         if self.evaluate_diversified_val_sharpe:
+            logging.info("Building model with TunerDiversifiedSharpe")
             self.tuner = TunerDiversifiedSharpe(
                 model_builder,
-                # objective="val_loss",
                 objective=kt.Objective("sharpe", "max"),
                 hp_minibatch_size=hp_minibatch_size,
                 max_trials=self.random_search_iterations,
@@ -245,6 +227,7 @@ class DeepMomentumNetworkModel(ABC):
                 project_name=project_name,
             )
         else:
+            logging.info("Building model with TunerValidationLoss")
             self.tuner = TunerValidationLoss(
                 model_builder,
                 objective="val_loss",
@@ -294,8 +277,11 @@ class DeepMomentumNetworkModel(ABC):
                 y=labels,
                 sample_weight=active_flags,
                 epochs=self.num_epochs,
-                # batch_size=minibatch_size,
-                # covered by Tuner class
+                validation_data=(
+                    val_data,
+                    val_labels,
+                    val_flags,
+                ),
                 callbacks=callbacks,
                 shuffle=True,
                 use_multiprocessing=True,
@@ -316,8 +302,6 @@ class DeepMomentumNetworkModel(ABC):
                 y=labels,
                 sample_weight=active_flags,
                 epochs=self.num_epochs,
-                # batch_size=minibatch_size,
-                # covered by Tuner class
                 validation_data=(
                     val_data,
                     val_labels,
@@ -327,7 +311,6 @@ class DeepMomentumNetworkModel(ABC):
                 shuffle=True,
                 use_multiprocessing=True,
                 workers=self.n_multiprocessing_workers,
-                # validation_batch_size=1,
             )
 
         best_hp = self.tuner.get_best_hyperparameters(num_trials=1)[0].values
@@ -375,6 +358,11 @@ class DeepMomentumNetworkModel(ABC):
                 sample_weight=active_flags,
                 epochs=self.num_epochs,
                 batch_size=hyperparameters["batch_size"],
+                validation_data=(
+                    val_data,
+                    val_labels,
+                    val_flags,
+                ),
                 callbacks=callbacks,
                 shuffle=True,
                 use_multiprocessing=True,
@@ -535,5 +523,6 @@ class LstmDeepMomentumNetworkModel(DeepMomentumNetworkModel):
             loss=sharpe_loss,
             optimizer=adam,
             sample_weight_mode="temporal",
+            weighted_metrics=[sharpe_loss]
         )
         return model

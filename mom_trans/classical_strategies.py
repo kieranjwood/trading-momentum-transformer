@@ -70,8 +70,7 @@ def calc_net_returns(data: pd.DataFrame, list_basis_points: List[float], identif
         data_slice = data[data["identifier"] == i].reset_index(drop=True)
         annualised_vol = data_slice["daily_vol"] * np.sqrt(252)
         scaled_position = VOL_TARGET * data_slice["position"] / annualised_vol
-        transaction_costs = scaled_position.diff().abs().fillna(
-            0.0).to_frame().to_numpy() * cost  # TODO should probably fill first with initial cost
+        transaction_costs = scaled_position.diff().abs().fillna(0.0).to_frame().to_numpy() * cost  # TODO should probably fill first with initial cost
         net_captured_returns = data_slice[["captured_returns"]].to_numpy() - transaction_costs
         columns = list(map(lambda c: "captured_returns_" + str(c).replace(".", "_") + "_bps", list_basis_points))
         dfs.append(pd.concat([data_slice, pd.DataFrame(net_captured_returns, columns=columns)], axis=1))

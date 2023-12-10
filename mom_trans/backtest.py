@@ -1,6 +1,7 @@
 import copy
 import gc
 import json
+import logging
 import os
 import shutil
 from typing import Tuple, List, Dict
@@ -166,7 +167,7 @@ def save_results(
         train_interval: Tuple[int, int, int],
         num_identifiers: int,
         asset_class_dictionary: Dict[str, str],
-        extra_metrics: dict = {},
+        extra_metrics: dict = None,
 ):
     """save results json
 
@@ -178,6 +179,7 @@ def save_results(
         asset_class_dictionary (Dict[str, str]): mapping of ticker to asset class
         extra_metrics (dict, optional): additional metrics to save. Defaults to {}.
     """
+    extra_metrics = extra_metrics or {}
     asset_classes = ["ALL"]
     results_asset_class = [results_sw]
     if asset_class_dictionary:
@@ -191,7 +193,6 @@ def save_results(
 
     metrics = {}
     for ac, results_ac in zip(asset_classes, results_asset_class):
-        suffix = _interval_suffix(train_interval)
         if ac == "ALL" and extra_metrics:
             ac_metrics = extra_metrics.copy()
         else:
@@ -383,20 +384,23 @@ def run_single_window(
         Exception: [description]
     """
     directory = _get_directory_name(experiment_name, train_interval)
+    result_path = os.path.exists(os.path.join(directory, "results.json"))
 
-    if skip_if_completed and os.path.exists(os.path.join(directory, "results.json")):
-        print(
-            f"Skipping {train_interval[1]}-{train_interval[2]} because already completed."
-        )
+    if skip_if_completed and result_path:
+        logging.info(f"Skipping {train_interval[1]}-{train_interval[2]} because already completed.")
+        logging.info(f'Results are in file {result_path}')
         return
 
+    logging.info(f'Reading features from {features_file_path}')
     raw_data = pd.read_csv(features_file_path, index_col=0, parse_dates=True)
     raw_data["date"] = raw_data["date"].astype("datetime64[ns]")
 
+    logging.info(f'Building model features for train start={train_interval[0]}, '
+                 f'train end={train_interval[1]}, test end={train_interval[2]}')
     # TODO more/less than the one year test buffer
     model_features = ModelFeatures(
-        raw_data,
-        params["total_time_steps"],
+        df=raw_data,
+        total_time_steps=params["total_time_steps"],
         start_boundary=train_interval[0],
         test_boundary=train_interval[1],
         test_end=train_interval[2],
@@ -410,6 +414,7 @@ def run_single_window(
     )
 
     hp_directory = os.path.join(directory, "hp")
+    logging.info(f'Logging hyperparameter search results in {hp_directory}')
 
     if params["architecture"] == "LSTM":
         dmn = LstmDeepMomentumNetworkModel(
@@ -434,25 +439,21 @@ def run_single_window(
             },
         )
     else:
-        dmn = None
         raise Exception(f"{params['architecture']} is not a valid architecture.")
 
-    best_hp, best_model = dmn.hyperparameter_search(
-        model_features.train, model_features.valid
-    )
+    logging.info(f'Running hyperparameter search train start={train_interval[0]}, '
+                 f'train end={train_interval[1]}, test end={train_interval[2]}')
+    best_hp, best_model = dmn.hyperparameter_search(model_features.train, model_features.valid)
     val_loss = dmn.evaluate(model_features.valid, best_model)
 
-    print(f"Best validation loss = {val_loss}")
-    print(f"Best params:")
-    for k in best_hp:
-        print(f"{k} = {best_hp[k]}")
+    logging.info(f'Best validation loss = {val_loss}')
+    logging.info(f'Best hyperparameters = {best_hp}')
 
     with open(os.path.join(directory, "best_hyperparameters.json"), "w") as file:
         file.write(json.dumps(best_hp))
 
-    # if predict_on_test_set:
-    print("Predicting on test set...")
-
+    logging.info(f'Predicting sliding window for train start={train_interval[0]}, '
+                 f'train end={train_interval[1]}, test end={train_interval[2]}')
     results_sw, performance_sw = dmn.get_positions(
         model_features.test_sliding,
         best_model,
@@ -460,7 +461,7 @@ def run_single_window(
         years_geq=train_interval[1],
         years_lt=train_interval[2],
     )
-    print(f"performance (sliding window) = {performance_sw}")
+    logging.info(f"Performance (sliding window) = {performance_sw}")
 
     results_sw = results_sw.merge(
         raw_data.reset_index()[["ticker", "date", "daily_vol"]].rename(
@@ -468,12 +469,14 @@ def run_single_window(
         ),
         on=["identifier", "time"],
     )
-    results_sw = calc_net_returns(
-        results_sw, BACKTEST_AVERAGE_BASIS_POINTS[1:], model_features.tickers
-    )
-    results_sw.to_csv(os.path.join(directory, "captured_returns_sw.csv"))
+    results_sw = calc_net_returns(results_sw, BACKTEST_AVERAGE_BASIS_POINTS[1:], model_features.tickers)
+    sw_returns_file_path = os.path.join(directory, "captured_returns_sw.csv")
+    logging.info(f'Writing sw results in {sw_returns_file_path}')
+    results_sw.to_csv(sw_returns_file_path)
 
     # keep fixed window just in case
+    logging.info(f'Predicting fixed window for train start={train_interval[0]}, '
+                 f'train end={train_interval[1]}, test end={train_interval[2]}')
     results_fw, performance_fw = dmn.get_positions(
         model_features.test_fixed,
         best_model,
@@ -481,19 +484,21 @@ def run_single_window(
         years_geq=train_interval[1],
         years_lt=train_interval[2],
     )
-    print(f"performance (fixed window) = {performance_fw}")
+    logging.info(f"Performance (fixed window) = {performance_fw}")
     results_fw = results_fw.merge(
         raw_data.reset_index()[["ticker", "date", "daily_vol"]].rename(
             columns={"ticker": "identifier", "date": "time"}
         ),
         on=["identifier", "time"],
     )
-    results_fw = calc_net_returns(
-        results_fw, BACKTEST_AVERAGE_BASIS_POINTS[1:], model_features.tickers
-    )
-    results_fw.to_csv(os.path.join(directory, "captured_returns_fw.csv"))
+    results_fw = calc_net_returns(results_fw, BACKTEST_AVERAGE_BASIS_POINTS[1:], model_features.tickers)
+    fw_returns_file_path = os.path.join(directory, "captured_returns_fw.csv")
+    logging.info(f'Writing fw results in {fw_returns_file_path}')
+    results_fw.to_csv(fw_returns_file_path)
 
-    with open(os.path.join(directory, "fixed_params.json"), "w") as file:
+    fixed_params_file_path = os.path.join(directory, "fixed_params.json")
+    logging.info(f'Writing fixed params to {fixed_params_file_path}')
+    with open(fixed_params_file_path, "w") as file:
         file.write(
             json.dumps(
                 dict(
@@ -512,9 +517,11 @@ def run_single_window(
 
     # save model and get rid of the hp dir
     best_directory = os.path.join(directory, "best")
+    logging.info(f'Saving best model in {best_directory}')
     best_model.save_weights(os.path.join(best_directory, "checkpoints", "checkpoint"))
     with open(os.path.join(best_directory, "hyperparameters.json"), "w") as file:
         file.write(json.dumps(best_hp, indent=4))
+    logging.info(f'Removing hyperparameter search results in {hp_directory}')
     shutil.rmtree(hp_directory)
 
     save_results(
@@ -531,6 +538,7 @@ def run_single_window(
     )
 
     # get rid of everything and reset - TODO maybe not needed...
+    logging.info(f'Removing model and resetting')
     del best_model
     gc.collect()
     tf.keras.backend.clear_session()
@@ -563,6 +571,7 @@ def run_all_windows(
     """
     # run the expanding window
     for interval in train_intervals:
+        logging.info(f"Running interval {interval} of {train_intervals}")
         run_single_window(
             experiment_name,
             features_file_path,
@@ -573,6 +582,7 @@ def run_all_windows(
             hp_minibatch_size=hp_minibatch_size,
         )
 
+    logging.info(f"Aggregating results for {experiment_name}")
     aggregate_and_save_all_windows(
         experiment_name, train_intervals, asset_class_dictionary, standard_window_size
     )
