@@ -26,10 +26,10 @@ class SharpeLoss(keras.losses.Loss):
         self.output_size = output_size  # in case we have multiple targets => output dim[-1] = output_size * n_quantiles
         super().__init__()
 
-    def call(self, y_true, weights):
-        captured_returns = weights * y_true
-        mean_returns = tf.reduce_mean(captured_returns)
-        return -(mean_returns / tf.sqrt(tf.reduce_mean(tf.square(captured_returns)) - tf.square(mean_returns) + 1e-9) * tf.sqrt(252.0))
+    def call(self, y_true, y_pred):
+        captured_returns = y_pred * y_true
+        sharpe = tf.reduce_mean(captured_returns) / (tf.reduce_std(captured_returns) + 1e-9) * tf.sqrt(252.0)
+        return -sharpe
 
 
 class SharpeValidationLoss(keras.callbacks.Callback):
@@ -79,9 +79,7 @@ class SharpeValidationLoss(keras.callbacks.Callback):
         # ignoring null times
 
         # TODO sharpe
-        sharpe = tf.reduce_mean(captured_returns) / tf.sqrt(
-            tf.math.reduce_variance(captured_returns) + tf.constant(1e-9, dtype=tf.float64) * tf.sqrt(
-                tf.constant(252.0, dtype=tf.float64))).numpy()
+        sharpe = tf.reduce_mean(captured_returns) / (tf.reduce_std(captured_returns) + 1e-9) * tf.sqrt(252.0)
         if sharpe > self.best_sharpe + self.min_delta:
             logging.info(f"Epoch {epoch} -> Sharpe on validation improved from {self.best_sharpe} to {sharpe}")
             self.best_sharpe = sharpe

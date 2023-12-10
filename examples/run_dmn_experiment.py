@@ -108,8 +108,8 @@ def main(
         params["force_output_sharpe_length"] = FORCE_OUTPUT_SHARPE_LENGTH
 
         if TEST_MODE:
-            params["num_epochs"] = 1
-            params["random_search_iterations"] = 2
+            params["num_epochs"] = 2
+            params["random_search_iterations"] = 1
 
         if changepoint_lbws:
             features_file_path = os.path.join(
