@@ -1,4 +1,18 @@
 # Trading with the Momentum Transformer
+
+> [!IMPORTANT]
+> ## Latest Work
+> [**DeePM: Regime-Robust Deep Learning for Systematic Macro Portfolio Management**](https://github.com/kieranjwood/deepm) extends the Momentum Transformer to end-to-end portfolio construction, re-implemented in PyTorch. Key contributions:
+>
+> 1. **Graph neural networks** encoding macroeconomic priors across assets
+> 2. **Multi-asset cross-sectional attention** with a causal lag (Directed Delay) mechanism
+> 3. **Portfolio-level loss** — optimises on a pooled portfolio Sharpe ratio rather than univariate per-asset objectives
+> 4. **Regime-robust minimax optimisation** — a SoftMin proxy for Entropic Value-at-Risk (EVaR) that penalises the worst historical subperiods
+> 5. **Realistic transaction costs in the loss** — asset-specific costs baked directly into the training objective
+> 6. **Two-pass exact gradient accumulation** — correct gradients for the coupled Sharpe-ratio objective at scale
+>
+> In backtests from 2010--2025, DeePM roughly doubles the net risk-adjusted returns of classical trend-following and improves upon the Momentum Transformer by approximately fifty percent. See the [paper](https://arxiv.org/abs/2601.05975) and [GitHub](https://github.com/kieranjwood/deepm) for full details.
+
 ## About
 This code accompanies the paper [Trading with the Momentum Transformer: An Intelligent and Interpretable Architecture](https://arxiv.org/pdf/2112.08534.pdf) and additionally provides an implementation for the paper [Slow Momentum with Fast Reversion: A Trading Strategy Using Deep Learning and Changepoint Detection](https://arxiv.org/pdf/2105.13727.pdf). 
 
